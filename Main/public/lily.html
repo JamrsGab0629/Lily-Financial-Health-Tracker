@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lily Chat — Financial Health Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/lily.css">
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <img src="assets/lily/happy.png" alt="" class="brand-mark__img">
+    </span>
+    <div class="brand-text">
+      <span class="brand-name">Lily</span>
+      <span class="brand-tagline">Financial Health Tracker</span>
+    </div>
+  </div>
+
+  <nav class="main-nav" aria-label="Primary">
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <a href="lily.html" class="nav-link is-active">Lily Chat</a>
+  </nav>
+</header>
+
+<main class="chat-layout">
+
+  <!-- ============ LEFT: LILY CHARACTER + SNAPSHOT ============ -->
+  <aside class="lily-side">
+
+    <div class="card lily-hero">
+      <div class="lily-hero__frame">
+        <img src="assets/lily/happy.png" alt="Lily the cat" class="lily-hero__img" id="lilySprite">
+      </div>
+      <p class="lily-hero__mood" id="lilyMoodText">Lily is <strong>Happy</strong> <span id="lilyMoodEmoji">😸</span></p>
+    </div>
+
+    <div class="card snapshot-card">
+      <h2 class="snapshot-title">Your Financial Snapshot</h2>
+      <dl class="snapshot-list">
+        <div class="snapshot-row">
+          <dt>Financial Health</dt>
+          <dd data-mono>82 / 100</dd>
+        </div>
+        <div class="snapshot-row">
+          <dt>Income</dt>
+          <dd data-mono>₱25,000</dd>
+        </div>
+        <div class="snapshot-row">
+          <dt>Expenses</dt>
+          <dd data-mono>₱17,000</dd>
+        </div>
+        <div class="snapshot-row">
+          <dt>Savings</dt>
+          <dd data-mono>₱8,000</dd>
+        </div>
+        <div class="snapshot-row">
+          <dt>Savings Rate</dt>
+          <dd data-mono>32%</dd>
+        </div>
+        <div class="snapshot-row">
+          <dt>Spending Trend</dt>
+          <dd class="trend-good">↓ Decreasing</dd>
+        </div>
+      </dl>
+    </div>
+
+  </aside>
+
+  <!-- ============ RIGHT: CHAT PANEL ============ -->
+  <section class="card chat-panel" aria-label="Chat with Lily">
+
+    <div class="chat-scroll" id="chatScroll">
+
+      <!-- Empty state / intro -->
+      <div class="empty-state" id="emptyState">
+        <span class="empty-state__icon" aria-hidden="true">🐱</span>
+        <h2>Hi! I'm Lily!</h2>
+        <p>I'm here to help you understand your financial health.</p>
+        <p>Ask me anything about your spending, savings, or financial progress!</p>
+      </div>
+
+      <div class="chat-messages" id="chatMessages"></div>
+
+    </div>
+
+    <!-- Preset question chips (rendered by lily.js) -->
+    <div class="preset-questions" id="presetQuestions" aria-label="Suggested questions"></div>
+
+    <!-- Question input bar -->
+    <form class="chat-input-bar" id="chatForm">
+      <input
+        type="text"
+        id="chatInput"
+        class="chat-input"
+        placeholder="Ask Lily about your finances..."
+        autocomplete="off"
+        aria-label="Ask Lily about your finances">
+      <button type="submit" class="chat-send" aria-label="Send message">➤</button>
+    </form>
+
+  </section>
+
+</main>
+
+<script src="js/lily.js"></script>
+</body>
+</html>

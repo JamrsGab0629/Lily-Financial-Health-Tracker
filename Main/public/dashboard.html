@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lily — Financial Health Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <img src="assets/lily/happy.png" alt="" class="brand-mark__img">
+    </span>
+    <div class="brand-text">  
+      <span class="brand-name">Lily</span>
+      <span class="brand-tagline">Financial Health Tracker</span>
+    </div>
+  </div>
+
+  <nav class="main-nav" aria-label="Primary">
+    <a href="dashboard.html" class="nav-link is-active">Dashboard</a>
+    <a href="lily.html" class="nav-link">Lily Chat</a>
+  </nav>
+</header>
+
+<main class="dashboard">
+
+  <!-- ============ LILY + HEALTH CARD ============ -->
+  <section class="card lily-card" aria-label="Financial health overview">
+    <div class="lily-card__pet">
+      <div class="lily-avatar-frame">
+        <img src="assets/lily/happy.png" alt="Lily the cat, looking happy" class="lily-avatar" id="lilyAvatar">
+      </div>
+      <p class="lily-mood" id="lilyMood">Lily is feeling <strong>Happy</strong> 😺</p>
+    </div>
+
+    <div class="lily-card__score">
+      <div class="score-heading">
+        <h2>Financial Health</h2>
+        <span class="score-status status-good" id="scoreStatus">Good</span>
+      </div>
+
+      <div class="score-number">
+        <span class="score-value" id="scoreValue">82</span>
+        <span class="score-max">/ 100</span>
+      </div>
+
+      <div class="health-bar" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100" aria-label="Financial health score">
+        <div class="health-bar__fill" id="healthBarFill"></div>
+      </div>
+
+      <p class="score-hint">Keep your savings rate above target to stay in the green.</p>
+    </div>
+  </section>
+
+  <!-- ============ FINANCIAL SUMMARY ============ -->
+  <section class="summary-grid" aria-label="Financial summary">
+
+    <article class="summary-card">
+      <span class="summary-icon" aria-hidden="true">💰</span>
+      <span class="summary-label">Income</span>
+      <span class="summary-value" data-mono>₱25,000</span>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon" aria-hidden="true">🧾</span>
+      <span class="summary-label">Expenses</span>
+      <span class="summary-value" data-mono>₱17,000</span>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon" aria-hidden="true">🐷</span>
+      <span class="summary-label">Savings</span>
+      <span class="summary-value" data-mono>₱8,000</span>
+    </article>
+
+    <article class="summary-card summary-card--rate">
+      <span class="summary-icon" aria-hidden="true">📈</span>
+      <span class="summary-label">Savings Rate</span>
+      <span class="summary-value summary-value--actual" data-mono>32%</span>
+
+      <div class="target-rate">
+        <span class="target-rate__label">Target</span>
+        <span class="target-rate__value" id="targetRateValue" data-mono>30%</span>
+        <button class="icon-btn" id="editTargetBtn" aria-label="Edit target savings rate" title="Edit target">✏️</button>
+        <input type="number" id="targetRateInput" class="target-rate__input" value="30" min="0" max="100" hidden>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- ============ CHART + BREAKDOWN ============ -->
+  <section class="split-grid">
+
+    <article class="card chart-card">
+      <div class="card-heading">
+        <div>
+          <h2>Income vs Expenses</h2>
+          <p class="card-subheading">This month vs last month</p>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><i class="legend-dot legend-dot--income"></i>Income</span>
+          <span class="legend-item"><i class="legend-dot legend-dot--expense"></i>Expenses</span>
+        </div>
+      </div>
+      <div class="bar-chart" id="barChart" aria-hidden="true"></div>
+    </article>
+
+    <article class="card breakdown-card">
+      <div class="card-heading">
+        <h2>Spending Breakdown</h2>
+      </div>
+      <div class="breakdown-list" id="breakdownList"></div>
+    </article>
+
+  </section>
+
+  <!-- ============ SPENDING TREND ============ -->
+  <section class="card trend-card" aria-label="Spending trend">
+    <div class="card-heading">
+      <h2>Spending Trend</h2>
+    </div>
+
+    <div class="trend-body">
+      <div class="trend-figure">
+        <span class="trend-figure__label">Previous Month</span>
+        <span class="trend-figure__value" data-mono>₱19,000</span>
+      </div>
+
+      <div class="trend-arrow trend-arrow--down" aria-hidden="true">↓</div>
+
+      <div class="trend-figure">
+        <span class="trend-figure__label">Current Month</span>
+        <span class="trend-figure__value" data-mono>₱17,000</span>
+      </div>
+
+      <div class="trend-indicator trend-indicator--good">
+        <span aria-hidden="true">📉</span>
+        <div>
+          <strong>Decreasing</strong>
+          <p>Spending decreased by 10%</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RECENT TRANSACTIONS ============ -->
+  <section class="card transactions-card">
+    <div class="card-heading">
+      <h2>Recent Transactions</h2>
+      <div class="tx-actions">
+        <button class="btn btn--income" id="addIncomeBtn">+ Add Income</button>
+        <button class="btn btn--expense" id="addExpenseBtn">+ Add Expense</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th class="align-right">Amount</th>
+            <th class="align-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="txTableBody">
+          <!-- rows injected by dashboard.js -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ LILY QUICK INTERACTION (floating) ============ -->
+<div class="lily-widget" id="lilyWidget">
+  <button class="lily-widget__toggle" id="lilyWidgetToggle" aria-expanded="true" aria-controls="lilyWidgetBody" aria-label="Toggle Lily's message">
+    <img src="assets/lily/happy.png" alt="" class="lily-widget__thumb">
+  </button>
+
+  <div class="lily-widget__body" id="lilyWidgetBody">
+    <div class="speech-bubble">
+      <p><strong>🐱 Lily says:</strong></p>
+      <p id="lilyMessage">"Your spending is lower than last month! Keep it up!"</p>
+    </div>
+    <a href="#" class="lily-widget__link">Talk to Lily →</a>
+  </div>
+</div>
+
+<!-- ============ ADD TRANSACTION MODAL ============ -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__header">
+      <h2 id="modalTitle">Add Income</h2>
+      <button class="icon-btn" id="closeModalBtn" aria-label="Close">✕</button>
+    </div>
+
+    <form class="modal__form" id="txForm">
+      <label class="field">
+        <span class="field__label">Amount</span>
+        <div class="input-prefix">
+          <span class="input-prefix__symbol">₱</span>
+          <input type="number" name="amount" placeholder="0.00" min="0" step="0.01" required>
+        </div>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Category</span>
+        <select name="category" required>
+          <option value="" disabled selected>Select a category</option>
+          <option>Food</option>
+          <option>Transportation</option>
+          <option>Bills</option>
+          <option>Shopping</option>
+          <option>Income</option>
+          <option>Other</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Date</span>
+        <input type="date" name="date" required>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Description</span>
+        <input type="text" name="description" placeholder="e.g. Lunch with friends">
+      </label>
+
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" id="cancelModalBtn">Cancel</button>
+        <button type="submit" class="btn btn--primary" id="submitModalBtn">Add Income</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/dashboard.js"></script>
+</body>
+</html>
