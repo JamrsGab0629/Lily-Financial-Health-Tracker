@@ -1,14 +1,26 @@
 const pool = require("../database/db");
 
 async function createTransaction(transaction) {
-    const { type, category, amount, date, description } = transaction;
+    const {
+        type,
+        category,
+        amount,
+        transaction_date,
+        description
+    } = transaction;
 
     const result = await pool.query(
         `INSERT INTO transactions
-        (type, category, amount, date, description)
+        (type, category, amount, transaction_date, description)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *`,
-        [type, category, amount, date, description]
+        [
+            type,
+            category,
+            amount,
+            transaction_date,
+            description
+        ]
     );
 
     return result.rows[0];
@@ -17,7 +29,7 @@ async function createTransaction(transaction) {
 async function getTransactions() {
     const result = await pool.query(
         `SELECT * FROM transactions
-         ORDER BY date DESC, id DESC`
+         ORDER BY transaction_date DESC, id DESC`
     );
 
     return result.rows;
@@ -34,8 +46,42 @@ async function deleteTransaction(id) {
     return result.rows[0];
 }
 
+async function updateTransaction(id, transaction) {
+
+    const {
+        type,
+        category,
+        amount,
+        transaction_date,
+        description
+    } = transaction;
+
+    const result = await pool.query(
+        `UPDATE transactions
+         SET
+            type = $1,
+            category = $2,
+            amount = $3,
+            transaction_date = $4,
+            description = $5
+         WHERE id = $6
+         RETURNING *`,
+        [
+            type,
+            category,
+            amount,
+            transaction_date,
+            description,
+            id
+        ]
+    );
+
+    return result.rows[0];
+}
+
 module.exports = {
     createTransaction,
     getTransactions,
-    deleteTransaction
+    deleteTransaction,
+    updateTransaction
 };

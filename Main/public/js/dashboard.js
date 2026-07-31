@@ -1,6 +1,6 @@
 /* ==========================================================================
    LILY — FINANCIAL HEALTH TRACKER
-   Dashboard UI logic (frontend only — no backend, no real calculations)
+   Dashboard UI logic (Connected to Node.js Backend)
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,152 +14,274 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* --------------------------------------------------------------------
-   1. Health score + Lily mood
+   1. Health Score, Summary Metrics & Lily Mood
    -------------------------------------------------------------------- */
-function renderHealthCard() {
-  const mockHealth = {
-    score: 82,
-    status: 'Good', // Good | Fair | Needs Attention
-    mood: 'Happy',
-    avatar: 'assets/lily/happy.png'
+async function renderHealthCard() {
+  try {
+    const response = await fetch("/api/financial/summary");
+    if (!response.ok) throw new Error("Failed to fetch financial summary");
+
+    const summary = await response.json();
+
+    // DOM Elements
+    const fill = document.getElementById('healthBarFill');
+    const scoreValue = document.getElementById('scoreValue');
+    const statusEl = document.getElementById('scoreStatus');
+    const moodEl = document.getElementById('lilyMood');
+    const lilyMessage = document.getElementById('lilyMessage');
+    const lilyAvatar = document.getElementById('lilyAvatar');
+
+    const summaryIncome = document.getElementById('summaryIncome');
+    const summaryExpenses = document.getElementById('summaryExpenses');
+    const summarySavings = document.getElementById('summarySavings');
+    const summarySavingsRate = document.getElementById('summarySavingsRate');
+
+    // Update Summary Cards
+    if (summaryIncome) summaryIncome.textContent = `₱${Number(summary.totalIncome || 0).toLocaleString()}`;
+    if (summaryExpenses) summaryExpenses.textContent = `₱${Number(summary.totalExpenses || 0).toLocaleString()}`;
+    if (summarySavings) summarySavings.textContent = `₱${Number(summary.balance || 0).toLocaleString()}`;
+    if (summarySavingsRate) summarySavingsRate.textContent = `${summary.savingsPercentage || 0}%`;
+
+    // Update Health Score
+    const score = summary.healthScore ?? 0;
+    if (scoreValue) scoreValue.textContent = score;
+    if (statusEl) {
+      statusEl.textContent = summary.lily?.status || "Good";
+      statusEl.classList.remove('status-good', 'status-warn', 'status-bad');
+      const statusClass = score >= 70 ? 'status-good' : score >= 40 ? 'status-warn' : 'status-bad';
+      statusEl.classList.add(statusClass);
+    }
+
+    // Update Lily's Mood, Avatar Sprite & Speech Bubble Message
+    if (summary.lily) {
+      if (moodEl) moodEl.innerHTML = `Lily status: <strong>${summary.lily.status}</strong> ${summary.lily.emoji || ''}`;
+      if (lilyMessage) lilyMessage.textContent = `"${summary.lily.message}"`;
+      if (lilyAvatar) {
+        const emotionMap = {
+          angry: 'assets/lily/angry.png',
+          sad: 'assets/lily/sad.png',
+          happy: 'assets/lily/happy.png',
+          very_happy: 'assets/lily/very_happy.png'
+        };
+        lilyAvatar.src = emotionMap[summary.lily.emotion] || 'assets/lily/happy.png';
+      }
+    }
+
+    // Animate Health Bar Fill
+    if (fill) {
+      requestAnimationFrame(() => {
+        fill.style.width = `${Math.min(100, Math.max(0, score))}%`;
+      });
+    }
+
+  } catch (error) {
+    console.error("Error updating dashboard health card:", error);
+  }
+}
+
+/* --------------------------------------------------------------------
+   2. Income vs Expenses Bar Chart (Dynamic from Transactions)
+   -------------------------------------------------------------------- */
+async function renderMonthlyChart() {
+  const chartEl = document.getElementById('barChart');
+  if (!chartEl) return;
+
+  try {
+    const response = await fetch("/api/transactions");
+    if (!response.ok) throw new Error("Failed to fetch transactions for chart");
+
+    const transactions = await response.json();
+    if (!transactions.length) {
+      chartEl.innerHTML = `<p style="padding: 1rem; color: #888;">No transactions logged yet.</p>`;
+      return;
+    }
+
+    // Group income and expenses by Month (e.g. "Jun", "Jul")
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const grouped = {};
+
+    transactions.forEach(tx => {
+      const txDate = new Date(tx.transaction_date || tx.date || Date.now());
+      const monthLabel = monthNames[txDate.getMonth()];
+
+      if (!grouped[monthLabel]) {
+        grouped[monthLabel] = { income: 0, expense: 0 };
+      }
+
+      const amt = Number(tx.amount) || 0;
+      if (tx.type === "income") {
+        grouped[monthLabel].income += amt;
+      } else {
+        grouped[monthLabel].expense += amt;
+      }
+    });
+
+    const monthlyData = Object.keys(grouped).map(month => ({
+      month,
+      income: grouped[month].income,
+      expense: grouped[month].expense
+    }));
+
+    const maxValue = Math.max(...monthlyData.flatMap(m => [m.income, m.expense]), 1);
+
+    chartEl.innerHTML = monthlyData.map(m => {
+      const incomeHeight = Math.round((m.income / maxValue) * 100);
+      const expenseHeight = Math.round((m.expense / maxValue) * 100);
+      return `
+        <div class="bar-chart__group">
+          <div class="bar-chart__bars">
+            <div class="bar-chart__bar bar-chart__bar--income" style="height:${incomeHeight}%" title="Income: ₱${m.income.toLocaleString()}">
+              <span class="bar-chart__value">₱${m.income.toLocaleString()}</span>
+            </div>
+            <div class="bar-chart__bar bar-chart__bar--expense" style="height:${expenseHeight}%" title="Expenses: ₱${m.expense.toLocaleString()}">
+              <span class="bar-chart__value">₱${m.expense.toLocaleString()}</span>
+            </div>
+          </div>
+          <span class="bar-chart__label">${m.month}</span>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error("Error rendering monthly chart:", error);
+  }
+}
+
+/* --------------------------------------------------------------------
+   3. Spending Breakdown (Dynamic from Expense Transactions)
+   -------------------------------------------------------------------- */
+async function renderSpendingBreakdown() {
+  const listEl = document.getElementById('breakdownList');
+  if (!listEl) return;
+
+  const colorPalette = {
+    Food: 'var(--blue-600)',
+    Transportation: 'var(--amber-500)',
+    Bills: 'var(--coral-500)',
+    Shopping: 'var(--green-500)',
+    Other: 'var(--navy-soft)'
   };
 
-  const fill = document.getElementById('healthBarFill');
-  const scoreValue = document.getElementById('scoreValue');
-  const statusEl = document.getElementById('scoreStatus');
-  const moodEl = document.getElementById('lilyMood');
+  try {
+    const response = await fetch("/api/transactions");
+    if (!response.ok) throw new Error("Failed to fetch transactions for breakdown");
 
-  scoreValue.textContent = mockHealth.score;
-  statusEl.textContent = mockHealth.status;
+    const transactions = await response.json();
+    const expenses = transactions.filter(tx => tx.type === "expense");
 
-  statusEl.classList.remove('status-good', 'status-warn', 'status-bad');
-  const statusClass = mockHealth.status === 'Good'
-    ? 'status-good'
-    : mockHealth.status === 'Fair'
-      ? 'status-warn'
-      : 'status-bad';
-  statusEl.classList.add(statusClass);
+    if (!expenses.length) {
+      listEl.innerHTML = `<p style="padding: 1rem; color: #888;">No expense records found.</p>`;
+      return;
+    }
 
-  moodEl.innerHTML = `Lily is feeling <strong>${mockHealth.mood}</strong> 😺`;
-
-  // Animate the bar fill in after paint
-  requestAnimationFrame(() => {
-    fill.style.width = `${mockHealth.score}%`;
-  });
-}
-
-/* --------------------------------------------------------------------
-   2. Income vs Expenses — simple CSS bar chart, mock data
-   -------------------------------------------------------------------- */
-function renderMonthlyChart() {
-  const monthlyData = [
-    { month: 'Jun', income: 25000, expense: 19000 },
-    { month: 'Jul', income: 25000, expense: 17000 }
-  ];
-
-  const maxValue = Math.max(...monthlyData.flatMap(m => [m.income, m.expense]));
-  const chartEl = document.getElementById('barChart');
-
-  chartEl.innerHTML = monthlyData.map(m => {
-    const incomeHeight = Math.round((m.income / maxValue) * 100);
-    const expenseHeight = Math.round((m.expense / maxValue) * 100);
-    return `
-      <div class="bar-chart__group">
-        <div class="bar-chart__bars">
-          <div class="bar-chart__bar bar-chart__bar--income" style="height:${incomeHeight}%" title="Income: ₱${m.income.toLocaleString()}">
-            <span class="bar-chart__value">₱${m.income.toLocaleString()}</span>
-          </div>
-          <div class="bar-chart__bar bar-chart__bar--expense" style="height:${expenseHeight}%" title="Expenses: ₱${m.expense.toLocaleString()}">
-            <span class="bar-chart__value">₱${m.expense.toLocaleString()}</span>
-          </div>
-        </div>
-        <span class="bar-chart__label">${m.month}</span>
-      </div>
-    `;
-  }).join('');
-}
-
-/* --------------------------------------------------------------------
-   3. Spending breakdown — category bars, mock data
-   -------------------------------------------------------------------- */
-function renderSpendingBreakdown() {
-  const categories = [
-    { name: 'Food', amount: 5000, color: 'var(--blue-600)' },
-    { name: 'Transportation', amount: 2000, color: 'var(--amber-500)' },
-    { name: 'Bills', amount: 4000, color: 'var(--coral-500)' },
-    { name: 'Shopping', amount: 3000, color: 'var(--green-500)' },
-    { name: 'Other', amount: 3000, color: 'var(--navy-soft)' }
-  ];
-
-  const total = categories.reduce((sum, c) => sum + c.amount, 0);
-  const listEl = document.getElementById('breakdownList');
-
-  listEl.innerHTML = categories.map(c => {
-    const pct = Math.round((c.amount / total) * 100);
-    return `
-      <div class="breakdown-row">
-        <div class="breakdown-row__top">
-          <span>${c.name}</span>
-          <span class="breakdown-row__amount">₱${c.amount.toLocaleString()}</span>
-        </div>
-        <div class="breakdown-track">
-          <div class="breakdown-fill" style="width:${pct}%; background:${c.color};"></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-/* --------------------------------------------------------------------
-   4. Recent transactions — mock data, rendered as table rows
-   -------------------------------------------------------------------- */
-function renderTransactions() {
-  const mockTransactions = [
-    { date: 'Jul 29', category: 'Food', description: 'Lunch', type: 'Expense', amount: -300 },
-    { date: 'Jul 28', category: 'Transportation', description: 'Bus fare', type: 'Expense', amount: -150 },
-    { date: 'Jul 27', category: 'Income', description: 'Part-time work', type: 'Income', amount: 5000 },
-    { date: 'Jul 25', category: 'Bills', description: 'Electricity bill', type: 'Expense', amount: -1200 },
-    { date: 'Jul 22', category: 'Shopping', description: 'New notebook & pens', type: 'Expense', amount: -450 }
-  ];
-
-  const tbody = document.getElementById('txTableBody');
-
-  tbody.innerHTML = mockTransactions.map(tx => {
-    const isIncome = tx.type === 'Income';
-    const amountText = isIncome
-      ? `+₱${tx.amount.toLocaleString()}`
-      : `-₱${Math.abs(tx.amount).toLocaleString()}`;
-
-    return `
-      <tr>
-        <td>${tx.date}</td>
-        <td>${tx.category}</td>
-        <td>${tx.description}</td>
-        <td><span class="tag ${isIncome ? 'tag--income' : 'tag--expense'}">${tx.type}</span></td>
-        <td class="align-right ${isIncome ? 'amount--income' : 'amount--expense'}">${amountText}</td>
-        <td class="row-actions">
-          <button type="button" class="tx-edit-btn">Edit</button>
-          <button type="button" class="tx-delete-btn">Delete</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  // Buttons are visual only for now — no backend wiring yet.
-  tbody.querySelectorAll('.tx-edit-btn, .tx-delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Intentionally inert — UI-only stage.
+    // Group expenses by category
+    const categoryTotals = {};
+    expenses.forEach(tx => {
+      const cat = tx.category || 'Other';
+      categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(tx.amount || 0);
     });
-  });
+
+    const totalExpense = Object.values(categoryTotals).reduce((sum, amt) => sum + amt, 0);
+
+    listEl.innerHTML = Object.entries(categoryTotals).map(([name, amount]) => {
+      const pct = totalExpense > 0 ? Math.round((amount / totalExpense) * 100) : 0;
+      const color = colorPalette[name] || 'var(--navy-soft)';
+
+      return `
+        <div class="breakdown-row">
+          <div class="breakdown-row__top">
+            <span>${name}</span>
+            <span class="breakdown-row__amount">₱${amount.toLocaleString()}</span>
+          </div>
+          <div class="breakdown-track">
+            <div class="breakdown-fill" style="width:${pct}%; background:${color};"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error("Error rendering spending breakdown:", error);
+  }
 }
 
 /* --------------------------------------------------------------------
-   5. Target savings rate — inline editable value
+   4. Transactions Table (API Fetch + Delete)
+   -------------------------------------------------------------------- */
+async function renderTransactions() {
+  try {
+    const response = await fetch("/api/transactions");
+    if (!response.ok) throw new Error("Failed to fetch transactions");
+
+    const transactions = await response.json();
+    const tbody = document.getElementById("txTableBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    transactions.forEach(tx => {
+      const isIncome = tx.type === "income";
+      const amountText = isIncome
+        ? `+₱${Number(tx.amount).toLocaleString()}`
+        : `-₱${Number(tx.amount).toLocaleString()}`;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${new Date(tx.transaction_date || tx.date || Date.now()).toLocaleDateString()}</td>
+        <td>${tx.category || "General"}</td>
+        <td>${tx.description || "N/A"}</td>
+        <td>
+          <span class="tag ${isIncome ? "tag--income" : "tag--expense"}">
+            ${tx.type}
+          </span>
+        </td>
+        <td class="align-right ${isIncome ? "amount--income" : "amount--expense"}">
+          ${amountText}
+        </td>
+        <td class="align-right">
+          <button class="tx-delete-btn icon-btn" data-id="${tx.id}" title="Delete">🗑️</button>
+        </td>
+      `;
+
+      // Attach Delete Handler
+      const deleteBtn = row.querySelector(".tx-delete-btn");
+      deleteBtn.addEventListener("click", () => deleteTransaction(tx.id));
+
+      tbody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+  }
+}
+
+async function deleteTransaction(id) {
+  if (!confirm("Are you sure you want to delete this transaction?")) return;
+
+  try {
+    const res = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      refreshAllViews();
+    }
+  } catch (err) {
+    console.error("Failed to delete transaction:", err);
+  }
+}
+
+// Helper to refresh all component views when data changes
+function refreshAllViews() {
+  renderTransactions();
+  renderHealthCard();
+  renderMonthlyChart();
+  renderSpendingBreakdown();
+}
+
+/* --------------------------------------------------------------------
+   5. Target Savings Rate Inline Editor
    -------------------------------------------------------------------- */
 function initTargetRateEditor() {
   const valueEl = document.getElementById('targetRateValue');
   const inputEl = document.getElementById('targetRateInput');
   const editBtn = document.getElementById('editTargetBtn');
+
+  if (!valueEl || !inputEl || !editBtn) return;
 
   const enterEditMode = () => {
     inputEl.value = parseInt(valueEl.textContent, 10) || 0;
@@ -187,11 +309,13 @@ function initTargetRateEditor() {
 }
 
 /* --------------------------------------------------------------------
-   6. Lily's floating quick-interaction widget
+   6. Lily Widget Interaction
    -------------------------------------------------------------------- */
 function initLilyWidget() {
   const toggle = document.getElementById('lilyWidgetToggle');
   const body = document.getElementById('lilyWidgetBody');
+
+  if (!toggle || !body) return;
 
   toggle.addEventListener('click', () => {
     const isHidden = body.hasAttribute('hidden');
@@ -206,19 +330,21 @@ function initLilyWidget() {
 }
 
 /* --------------------------------------------------------------------
-   7. Add Income / Add Expense modal (frontend only)
+   7. Add Income / Expense Modal (API POST Handler)
    -------------------------------------------------------------------- */
 function initTransactionModal() {
   const overlay = document.getElementById('modalOverlay');
   const title = document.getElementById('modalTitle');
   const submitBtn = document.getElementById('submitModalBtn');
   const form = document.getElementById('txForm');
-  const categorySelect = form.querySelector('select[name="category"]');
 
+  if (!overlay || !form) return;
+
+  const categorySelect = form.querySelector('select[name="category"]');
   const addIncomeBtn = document.getElementById('addIncomeBtn');
   const addExpenseBtn = document.getElementById('addExpenseBtn');
-  const closeBtn = document.getElementById('closeModalBtn');
-  const cancelBtn = document.getElementById('cancelModalBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const cancelModalBtn = document.getElementById('cancelModalBtn');
 
   let currentMode = 'income';
 
@@ -228,7 +354,7 @@ function initTransactionModal() {
     title.textContent = isIncome ? 'Add Income' : 'Add Expense';
     submitBtn.textContent = isIncome ? 'Add Income' : 'Add Expense';
     submitBtn.className = `btn ${isIncome ? 'btn--income' : 'btn--expense'}`;
-    categorySelect.value = isIncome ? 'Income' : '';
+    if (categorySelect) categorySelect.value = isIncome ? 'Income' : 'Food';
     overlay.removeAttribute('hidden');
   };
 
@@ -237,10 +363,10 @@ function initTransactionModal() {
     form.reset();
   };
 
-  addIncomeBtn.addEventListener('click', () => openModal('income'));
-  addExpenseBtn.addEventListener('click', () => openModal('expense'));
-  closeBtn.addEventListener('click', closeModal);
-  cancelBtn.addEventListener('click', closeModal);
+  if (addIncomeBtn) addIncomeBtn.addEventListener('click', () => openModal('income'));
+  if (addExpenseBtn) addExpenseBtn.addEventListener('click', () => openModal('expense'));
+  if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+  if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
 
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal();
@@ -250,10 +376,41 @@ function initTransactionModal() {
     if (e.key === 'Escape' && !overlay.hasAttribute('hidden')) closeModal();
   });
 
-  form.addEventListener('submit', (e) => {
+  // Handle Form Submission
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // UI-only stage: no persistence, no API calls yet.
-    // A future iteration will wire this up to the fuzzy-logic backend.
-    closeModal();
+
+    const formData = new FormData(form);
+    
+    // Extract date from form, fallback to today's date if empty
+    const rawDate = formData.get("date") || formData.get("transaction_date");
+    const formattedDate = rawDate ? new Date(rawDate).toISOString() : new Date().toISOString();
+
+    const payload = {
+      description: formData.get("description") || `${currentMode === 'income' ? 'Income' : 'Expense'} Transaction`,
+      amount: parseFloat(formData.get("amount")),
+      category: formData.get("category") || "Other",
+      type: currentMode,
+      transaction_date: formattedDate,
+      date: formattedDate
+    };
+
+    try {
+      const response = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        closeModal();
+        refreshAllViews();
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error || "Failed to create transaction"}`);
+      }
+    } catch (err) {
+      console.error("Error submitting transaction:", err);
+    }
   });
 }

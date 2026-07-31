@@ -1,62 +1,117 @@
-const transactionModel = require("../models/transactionModel");
+const transactionService = require("../services/transactionService");
 
+/*
+=========================================
+CREATE TRANSACTION
+=========================================
+*/
 async function createTransaction(req, res) {
     try {
-        const transaction = await transactionModel.createTransaction(req.body);
+
+        const transaction =
+            await transactionService.createTransaction(req.body);
 
         res.status(201).json({
             message: "Transaction created successfully",
             transaction
         });
+
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
-            message: "Failed to create transaction"
+            message: error.message
         });
+
     }
 }
 
+/*
+=========================================
+GET ALL TRANSACTIONS
+=========================================
+*/
 async function getTransactions(req, res) {
     try {
-        const transactions = await transactionModel.getTransactions();
+
+        const transactions =
+            await transactionService.getTransactions();
 
         res.status(200).json(transactions);
+
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
-            message: "Failed to retrieve transactions"
+            message: error.message
         });
+
     }
 }
 
+/*
+=========================================
+UPDATE TRANSACTION
+=========================================
+*/
+async function updateTransaction(req, res) {
+    try {
+
+        const transaction =
+            await transactionService.updateTransaction(
+                req.params.id,
+                req.body
+            );
+
+        res.status(200).json({
+            message: "Transaction updated successfully",
+            transaction
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+}
+
+/*
+=========================================
+DELETE TRANSACTION
+=========================================
+*/
 async function deleteTransaction(req, res) {
     try {
-        const transaction =
-            await transactionModel.deleteTransaction(req.params.id);
 
-        if (!transaction) {
-            return res.status(404).json({
-                message: "Transaction not found"
-            });
-        }
+        const transaction =
+            await transactionService.deleteTransaction(req.params.id);
 
         res.status(200).json({
             message: "Transaction deleted successfully",
             transaction
         });
+
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
-            message: "Failed to delete transaction"
+            message: error.message
         });
+
     }
 }
+
 
 module.exports = {
     createTransaction,
     getTransactions,
+    updateTransaction,
     deleteTransaction
 };

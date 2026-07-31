@@ -60,40 +60,41 @@
   </section>
 
   <!-- ============ FINANCIAL SUMMARY ============ -->
-  <section class="summary-grid" aria-label="Financial summary">
+  <!-- ============ FINANCIAL SUMMARY ============ -->
+<section class="summary-grid" aria-label="Financial summary">
 
-    <article class="summary-card">
-      <span class="summary-icon" aria-hidden="true">💰</span>
-      <span class="summary-label">Income</span>
-      <span class="summary-value" data-mono>₱25,000</span>
-    </article>
+  <article class="summary-card">
+    <span class="summary-icon" aria-hidden="true">💰</span>
+    <span class="summary-label">Income</span>
+    <span class="summary-value" id="summaryIncome" data-mono>₱0</span>
+  </article>
 
-    <article class="summary-card">
-      <span class="summary-icon" aria-hidden="true">🧾</span>
-      <span class="summary-label">Expenses</span>
-      <span class="summary-value" data-mono>₱17,000</span>
-    </article>
+  <article class="summary-card">
+    <span class="summary-icon" aria-hidden="true">🧾</span>
+    <span class="summary-label">Expenses</span>
+    <span class="summary-value" id="summaryExpenses" data-mono>₱0</span>
+  </article>
 
-    <article class="summary-card">
-      <span class="summary-icon" aria-hidden="true">🐷</span>
-      <span class="summary-label">Savings</span>
-      <span class="summary-value" data-mono>₱8,000</span>
-    </article>
+  <article class="summary-card">
+    <span class="summary-icon" aria-hidden="true">🐷</span>
+    <span class="summary-label">Savings</span>
+    <span class="summary-value" id="summarySavings" data-mono>₱0</span>
+  </article>
 
-    <article class="summary-card summary-card--rate">
-      <span class="summary-icon" aria-hidden="true">📈</span>
-      <span class="summary-label">Savings Rate</span>
-      <span class="summary-value summary-value--actual" data-mono>32%</span>
+  <article class="summary-card summary-card--rate">
+    <span class="summary-icon" aria-hidden="true">📈</span>
+    <span class="summary-label">Savings Rate</span>
+    <span class="summary-value summary-value--actual" id="summarySavingsRate" data-mono>0%</span>
 
-      <div class="target-rate">
-        <span class="target-rate__label">Target</span>
-        <span class="target-rate__value" id="targetRateValue" data-mono>30%</span>
-        <button class="icon-btn" id="editTargetBtn" aria-label="Edit target savings rate" title="Edit target">✏️</button>
-        <input type="number" id="targetRateInput" class="target-rate__input" value="30" min="0" max="100" hidden>
-      </div>
-    </article>
+    <div class="target-rate">
+      <span class="target-rate__label">Target</span>
+      <span class="target-rate__value" id="targetRateValue" data-mono>30%</span>
+      <button class="icon-btn" id="editTargetBtn" aria-label="Edit target savings rate" title="Edit target">✏️</button>
+      <input type="number" id="targetRateInput" class="target-rate__input" value="30" min="0" max="100" hidden>
+    </div>
+  </article>
 
-  </section>
+</section>
 
   <!-- ============ CHART + BREAKDOWN ============ -->
   <section class="split-grid">
