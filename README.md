@@ -250,16 +250,13 @@ Good habits increase the score, while excessive spending decreases it.
 * CSS
 * JavaScript
 
-Possible UI libraries:
 
-* Bootstrap
-* Other design libraries
 
 ---
 
 ## Backend
 
-Python backend responsible for:
+node js backend responsible for:
 
 * API handling
 * Business logic
@@ -270,6 +267,7 @@ Python backend responsible for:
 
 ## Database
 
+PostgresSQL (supabase)
 Stores:
 
 * User information
