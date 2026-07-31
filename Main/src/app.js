@@ -6,6 +6,7 @@ require("dotenv").config();
 const db = require("./database/db");
 const transactionRoutes = require("./routes/transactionRoutes");
 const financialRoutes = require("./routes/financialRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 // 2. API Routes
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/financial", financialRoutes);
-
+app.use("/api/settings", settingsRoutes);
 // 3. Serve dashboard.html on root '/' request
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "public", "dashboard.html"));

@@ -154,11 +154,11 @@ async function renderSpendingBreakdown() {
   if (!listEl) return;
 
   const colorPalette = {
-    Food: 'var(--blue-600)',
-    Transportation: 'var(--amber-500)',
-    Bills: 'var(--coral-500)',
-    Shopping: 'var(--green-500)',
-    Other: 'var(--navy-soft)'
+    Food: 'var(--coral-500)',
+    Transportation: 'var(--gold-500)',
+    Bills: 'var(--danger)',
+    Shopping: 'var(--mint-500)',
+    Other: 'var(--ink-500)'
   };
 
   try {
@@ -184,7 +184,7 @@ async function renderSpendingBreakdown() {
 
     listEl.innerHTML = Object.entries(categoryTotals).map(([name, amount]) => {
       const pct = totalExpense > 0 ? Math.round((amount / totalExpense) * 100) : 0;
-      const color = colorPalette[name] || 'var(--navy-soft)';
+      const color = colorPalette[name] || 'var(--coral-500)';
 
       return `
         <div class="breakdown-row">
@@ -274,14 +274,25 @@ function refreshAllViews() {
 }
 
 /* --------------------------------------------------------------------
-   5. Target Savings Rate Inline Editor
+   5. Target Savings Rate Inline Editor (Connected to /api/settings)
    -------------------------------------------------------------------- */
-function initTargetRateEditor() {
+async function initTargetRateEditor() {
   const valueEl = document.getElementById('targetRateValue');
   const inputEl = document.getElementById('targetRateInput');
   const editBtn = document.getElementById('editTargetBtn');
 
   if (!valueEl || !inputEl || !editBtn) return;
+
+  // Fetch saved rate on load
+  try {
+    const res = await fetch("/api/settings");
+    if (res.ok) {
+      const data = await res.json();
+      valueEl.textContent = `${data.target_savings_rate}%`;
+    }
+  } catch (err) {
+    console.error("Failed to fetch settings:", err);
+  }
 
   const enterEditMode = () => {
     inputEl.value = parseInt(valueEl.textContent, 10) || 0;
@@ -291,13 +302,27 @@ function initTargetRateEditor() {
     inputEl.select();
   };
 
-  const commitEdit = () => {
+  // Save edited rate to database
+  const commitEdit = async () => {
     let next = parseInt(inputEl.value, 10);
     if (isNaN(next)) next = parseInt(valueEl.textContent, 10) || 0;
     next = Math.min(100, Math.max(0, next));
+
     valueEl.textContent = `${next}%`;
     valueEl.hidden = false;
     inputEl.hidden = true;
+
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_savings_rate: next })
+      });
+
+      if (res.ok) renderHealthCard();
+    } catch (err) {
+      console.error("Failed to update settings:", err);
+    }
   };
 
   editBtn.addEventListener('click', enterEditMode);
@@ -309,22 +334,22 @@ function initTargetRateEditor() {
 }
 
 /* --------------------------------------------------------------------
-   6. Lily Widget Interaction
+   6. Lily Quick Widget Interaction
    -------------------------------------------------------------------- */
 function initLilyWidget() {
-  const toggle = document.getElementById('lilyWidgetToggle');
-  const body = document.getElementById('lilyWidgetBody');
+  const toggleBtn = document.getElementById('lilyWidgetToggle');
+  const widgetBody = document.getElementById('lilyWidgetBody');
 
-  if (!toggle || !body) return;
+  if (!toggleBtn || !widgetBody) return;
 
-  toggle.addEventListener('click', () => {
-    const isHidden = body.hasAttribute('hidden');
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = widgetBody.hasAttribute('hidden');
     if (isHidden) {
-      body.removeAttribute('hidden');
-      toggle.setAttribute('aria-expanded', 'true');
+      widgetBody.removeAttribute('hidden');
+      toggleBtn.setAttribute('aria-expanded', 'true');
     } else {
-      body.setAttribute('hidden', '');
-      toggle.setAttribute('aria-expanded', 'false');
+      widgetBody.setAttribute('hidden', '');
+      toggleBtn.setAttribute('aria-expanded', 'false');
     }
   });
 }
@@ -391,8 +416,7 @@ function initTransactionModal() {
       amount: parseFloat(formData.get("amount")),
       category: formData.get("category") || "Other",
       type: currentMode,
-      transaction_date: formattedDate,
-      date: formattedDate
+      transaction_date: formattedDate
     };
 
     try {
@@ -407,7 +431,7 @@ function initTransactionModal() {
         refreshAllViews();
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.error || "Failed to create transaction"}`);
+        alert(`Error: ${errorData.error || errorData.message || "Failed to create transaction"}`);
       }
     } catch (err) {
       console.error("Error submitting transaction:", err);

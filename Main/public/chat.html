@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lily — Chat</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="landing.html" class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">
+      <span class="brand-name">Lily</span>
+      <span class="brand-tagline">Financial Health Coach</span>
+    </span>
+  </a>
+
+  <nav class="main-nav">
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <a href="chat.html" class="nav-link is-active">Chat</a>
+  </nav>
+</header>
+
+<main class="chat-shell">
+
+  <aside class="chat-side card">
+    <div class="chat-side-lily">
+      <div class="lily-avatar-frame chat-avatar-frame">
+        <span class="lily-avatar chat-avatar-face" id="lilyFace">😺</span>
+      </div>
+      <p class="chat-side-name">Lily</p>
+      <span class="score-status status-good" id="lilyMoodBadge">Happy</span>
+    </div>
+
+    <div class="chat-side-block">
+      <h3 class="chat-side-heading">Suggested Questions</h3>
+      <div class="suggested-list" id="suggestedList">
+        <button type="button" class="suggested-chip">How is my financial health?</button>
+        <button type="button" class="suggested-chip">Am I overspending?</button>
+        <button type="button" class="suggested-chip">How can I save more?</button>
+        <button type="button" class="suggested-chip">What should I improve?</button>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn--ghost chat-reset" id="chatReset">Start New Conversation</button>
+  </aside>
+
+  <section class="chat-main card">
+    <div class="chat-window" id="chatWindow">
+
+      <div class="msg msg--lily">
+        <span class="msg-avatar" aria-hidden="true">😺</span>
+        <div class="msg-bubble">Meow! I'm Lily, your financial health coach. Ask me anything about your money — savings, spending, or goals 🐾</div>
+      </div>
+
+      <div class="msg msg--lily">
+        <span class="msg-avatar" aria-hidden="true">😺</span>
+        <div class="msg-bubble">Meow! Your savings are improving. Keep building good habits!</div>
+      </div>
+
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator" hidden>
+      <span class="msg-avatar" aria-hidden="true">😺</span>
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="js/chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lily — Your Fuzzy Logic Financial Health Coach</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+
+<header class="nav-wrap" id="navWrap">
+  <nav class="nav container">
+    <a href="#top" class="nav-logo">
+      <span class="nav-logo-mark" aria-hidden="true">🐱</span>
+      Lily
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#fuzzy-logic">Fuzzy Logic</a></li>
+      <li><a href="#score">Health Score</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+
+    <div class="nav-cta">
+      <a href="#" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+
+    <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="nav-mobile" id="navMobile">
+    <a href="#features">Features</a>
+    <a href="#fuzzy-logic">Fuzzy Logic</a>
+    <a href="#score">Health Score</a>
+    <a href="#faq">FAQ</a>
+    <a href="#" class="btn btn-primary">Go to Dashboard</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero container">
+    <div class="hero-copy">
+      <span class="eyebrow">FUZZY LOGIC FINANCE</span>
+      <h1 class="hero-title">Meet Lily, the cat<br>who actually gets <span class="hero-title-accent">your money.</span></h1>
+      <p class="hero-sub">
+        No more "good" or "bad" spending labels. Lily reads the shades in between —
+        moderate savings, borderline overspending — and coaches you toward a healthier financial life.
+      </p>
+      <div class="hero-ctas">
+        <a href="dashboard.html" class="btn btn-primary">Get Started</a>
+        <a href="#fuzzy-logic" class="btn btn-ghost">See How It Works</a>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="chat-card">
+        <div class="chat-head">
+          <div class="chat-avatar">😺</div>
+          <div>
+            <div class="chat-name">Lily</div>
+            <div class="chat-status">● Happy — stable habits</div>
+          </div>
+        </div>
+        <div class="chat-bubble">Meow! Your savings are improving. Keep building good habits!</div>
+        <div class="chat-bubble chat-bubble-user">Am I overspending on food this month?</div>
+        <div class="chat-bubble">Meow... your food expenses are a bit high compared to last month. Let's trim it a little 🐾</div>
+      </div>
+
+      <div class="health-float">
+        <div class="health-float-label">Financial Health</div>
+        <div class="health-bar-track"><span class="health-bar-fill" style="width: 78%"></span></div>
+        <div class="health-float-score">78% — GOOD</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wave-divider" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0 40 C 240 0, 480 80, 720 40 S 1200 0, 1440 40 V80 H0 Z"/></svg></div>
+
+  <section class="compare" id="fuzzy-logic">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">WHY FUZZY LOGIC</span>
+        <h2>Money isn't just good or bad.</h2>
+        <p class="section-sub">Traditional trackers force your finances into rigid boxes. Lily's fuzzy logic engine understands the in-between.</p>
+      </div>
+
+      <div class="compare-grid">
+        <div class="compare-col compare-old">
+          <span class="compare-label">Traditional trackers</span>
+          <ul>
+            <li>Fixed rules like "income above ₱30,000 is good"</li>
+            <li>Binary pass/fail spending labels</li>
+            <li>No sense of partial progress toward goals</li>
+            <li>Just numbers, no personalized coaching</li>
+          </ul>
+        </div>
+        <div class="compare-vs" aria-hidden="true">VS</div>
+        <div class="compare-col compare-new">
+          <span class="compare-label">Lily's fuzzy engine</span>
+          <ul>
+            <li>Gradual evaluation — 20% low, 70% medium, 10% high income</li>
+            <li>Understands moderate, borderline, and risky spending</li>
+            <li>Tracks goals as behind, near, or achieved</li>
+            <li>A cat companion that reacts to your real habits</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wave-divider wave-divider-flip" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0 40 C 240 0, 480 80, 720 40 S 1200 0, 1440 40 V80 H0 Z"/></svg></div>
+
+  <section class="features container" id="features">
+    <div class="section-head">
+      <span class="eyebrow">CORE FEATURES</span>
+      <h2>Everything you need to track, understand, and improve.</h2>
+      <p class="section-sub">Six pieces that work together to turn raw transactions into real financial coaching.</p>
+    </div>
+
+    <div class="feature-grid">
+      <article class="feature-card">
+        <div class="feature-icon" style="--fi-bg: var(--coral-500)">💸</div>
+        <h3>Expense Tracking</h3>
+        <p>Log expenses by name, amount, category, and date — from food to bills to entertainment.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon" style="--fi-bg: var(--mint-500)">💰</div>
+        <h3>Income Tracking</h3>
+        <p>Record salary, extra income, and other sources so your health score reflects the full picture.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon" style="--fi-bg: var(--gold-500)">🎯</div>
+        <h3>Savings Goals</h3>
+        <p>Set targets like "Save ₱10,000 in 3 months" and watch Lily track behind, near, or achieved status.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon" style="--fi-bg: var(--coral-500)">📊</div>
+        <h3>Spending Analysis</h3>
+        <p>Category breakdowns, monthly trends, and income-versus-expense comparisons at a glance.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon" style="--fi-bg: var(--mint-500)">📋</div>
+        <h3>Financial Dashboard</h3>
+        <p>Total income, expenses, savings, health score, and Lily's mood — all in one place.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon" style="--fi-bg: var(--gold-500)">💬</div>
+        <h3>Lily Chat Interface</h3>
+        <p>Ask Lily "Am I overspending?" or "How can I save more?" and get answers based on your real data.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="score-wrap" id="score">
+    <div class="container">
+      <div class="section-head section-head-light">
+        <span class="eyebrow">FINANCIAL HEALTH SCORE</span>
+        <h2>One score. Four honest tiers.</h2>
+        <p class="section-sub">Every input feeds into a single Financial Health Score, classified into four ranges.</p>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-meter">
+          <div class="score-tier">
+            <span class="score-tier-dot" style="background: var(--danger)"></span>
+            <span class="score-tier-label">Poor</span>
+            <span class="score-tier-range">0–30%</span>
+          </div>
+          <div class="score-tier">
+            <span class="score-tier-dot" style="background: var(--gold-500)"></span>
+            <span class="score-tier-label">Average</span>
+            <span class="score-tier-range">31–60%</span>
+          </div>
+          <div class="score-tier">
+            <span class="score-tier-dot" style="background: var(--coral-500)"></span>
+            <span class="score-tier-label">Good</span>
+            <span class="score-tier-range">61–80%</span>
+          </div>
+          <div class="score-tier">
+            <span class="score-tier-dot" style="background: var(--mint-500)"></span>
+            <span class="score-tier-label">Excellent</span>
+            <span class="score-tier-range">81–100%</span>
+          </div>
+        </div>
+
+        <div class="score-example">
+          <div class="score-example-value">78%</div>
+          <div class="score-example-status">Good</div>
+          <div class="score-example-bar">
+            <div class="health-bar-track"><span class="health-bar-fill" style="width: 78%"></span></div>
+          </div>
+          <p class="score-example-note">"You are managing your money well, but reducing unnecessary entertainment expenses can improve your savings."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="moods container">
+    <div class="section-head">
+      <span class="eyebrow">MEET LILY</span>
+      <h2>Her mood is basically your financial mirror.</h2>
+      <p class="section-sub">Lily's emotions shift with your habits — a friendly nudge instead of a cold notification.</p>
+    </div>
+
+    <div class="mood-grid">
+      <article class="mood-card">
+        <div class="mood-emoji">😿</div>
+        <h3>Sad</h3>
+        <p>Poor savings or excessive spending</p>
+      </article>
+      <article class="mood-card">
+        <div class="mood-emoji">😾</div>
+        <h3>Angry</h3>
+        <p>Financial situation turning critical</p>
+      </article>
+      <article class="mood-card">
+        <div class="mood-emoji">🙂</div>
+        <h3>Happy</h3>
+        <p>Stable, healthy financial habits</p>
+      </article>
+      <article class="mood-card">
+        <div class="mood-emoji">😸</div>
+        <h3>Very Happy</h3>
+        <p>Excellent money management</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="faq container" id="faq">
+    <div class="section-head">
+      <span class="eyebrow">QUESTIONS</span>
+      <h2>Everything you're wondering.</h2>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>What is fuzzy logic, really?</span>
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a"><p>Instead of sorting your finances into strict "good" or "bad" boxes, fuzzy logic measures how much your income, spending, and savings belong to each category at once — giving a more realistic, human-like read on your habits.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>How is my Financial Health Score calculated?</span>
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a"><p>Lily evaluates your savings rate, expense ratio, goal progress, and spending behavior together, then runs them through a fuzzy inference engine to produce a single score from 0–100%.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>Is my financial data kept private?</span>
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a"><p>Yes. Your transactions, income, and goals are stored securely and used only to power your own dashboard and Lily's advice — never shared or sold.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>Do I need to know anything about finance to start?</span>
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a"><p>Not at all. Just log your income and expenses as they happen — Lily handles the analysis and explains everything in plain, friendly language.</p></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href="#top" class="nav-logo">
+        <span class="nav-logo-mark" aria-hidden="true">🐱</span>
+        Lily
+      </a>
+      <p>Your fuzzy logic financial health coach.</p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#features">Features</a>
+      <a href="#fuzzy-logic">Fuzzy Logic</a>
+      <a href="#score">Health Score</a>
+      <a href="#faq">FAQ</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>© 2026 Lily Financial Health Tracker. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="js/landing.js"></script>
+</body>
+</html>

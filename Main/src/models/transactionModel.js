@@ -35,6 +35,16 @@ async function getTransactions() {
     return result.rows;
 }
 
+// ADDED: Fetch transaction by ID so service layers can verify existence
+async function getTransactionById(id) {
+    const result = await pool.query(
+        `SELECT * FROM transactions WHERE id = $1`,
+        [id]
+    );
+
+    return result.rows[0];
+}
+
 async function deleteTransaction(id) {
     const result = await pool.query(
         `DELETE FROM transactions
@@ -82,6 +92,7 @@ async function updateTransaction(id, transaction) {
 module.exports = {
     createTransaction,
     getTransactions,
+    getTransactionById, // Exported here!
     deleteTransaction,
     updateTransaction
 };

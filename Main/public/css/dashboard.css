@@ -1,97 +1,13 @@
-/* ==========================================================================
-   LILY — FINANCIAL HEALTH TRACKER
-   Design tokens
-   ========================================================================== */
-:root {
-  /* Color */
-  --navy:        #1B2A41;   /* primary text */
-  --navy-soft:   #5C6B84;   /* secondary text */
-  --blue-700:    #2E5EAA;   /* primary brand blue */
-  --blue-600:    #3B6FC4;
-  --blue-500:    #5C8CE0;
-  --blue-200:    #C9DCF7;
-  --blue-100:    #EAF1FC;   /* tinted surface */
-  --blue-50:     #F5F9FF;   /* page background */
-  --white:       #FFFFFF;
+:root { --header-h: 72px; }
 
-  --green-700:   #2F8F5B;
-  --green-500:   #4CAF82;
-  --green-100:   #E1F5EA;
-
-  --amber-700:   #B9791F;
-  --amber-500:   #E8A33D;
-  --amber-100:   #FBEEDA;
-
-  --coral-700:   #C4433F;
-  --coral-500:   #E8615F;
-  --coral-100:   #FCE7E6;
-
-  --border:      #DCE7F7;
-  --shadow-card: 0 2px 10px rgba(27, 42, 65, 0.06), 0 1px 2px rgba(27, 42, 65, 0.05);
-
-  /* Type */
-  --font-display: 'Baloo 2', system-ui, sans-serif;
-  --font-body:    'Inter', system-ui, sans-serif;
-  --font-mono:    'Space Mono', 'Courier New', monospace;
-
-  /* Layout */
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 8px;
-  --gap: 24px;
-  --header-h: 72px;
-}
-
-/* ==========================================================================
-   Reset & base
-   ========================================================================== */
-*, *::before, *::after { box-sizing: border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  margin: 0;
-  font-family: var(--font-body);
-  background: var(--blue-50);
-  color: var(--navy);
-  -webkit-font-smoothing: antialiased;
-}
-
-img { max-width: 100%; display: block; }
-
-button, input, select {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-}
-
-a { color: inherit; text-decoration: none; }
-
-:focus-visible {
-  outline: 3px solid var(--blue-500);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
-
-[data-mono] { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.02em; }
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
-}
-
-/* ==========================================================================
-   Header
-   ========================================================================== */
 .app-header {
   height: var(--header-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 clamp(16px, 4vw, 40px);
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--line-strong);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -103,12 +19,12 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  background: var(--blue-100);
+  background: var(--bg-tint);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 2px solid var(--blue-200);
+  border: 2px solid var(--coral-tint);
 }
 
 .brand-mark__img {
@@ -124,12 +40,12 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.25rem;
-  color: var(--blue-700);
+  color: var(--coral-600);
 }
 
 .brand-tagline {
   font-size: 0.72rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -141,34 +57,31 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.nav-link:hover { background: var(--blue-100); color: var(--blue-700); }
+.nav-link:hover { background: var(--bg-tint); color: var(--coral-600); }
 
 .nav-link.is-active {
-  background: var(--blue-700);
-  color: var(--white);
+  background: var(--coral-600);
+  color: var(--bg-surface);
 }
 
-/* ==========================================================================
-   Dashboard layout
-   ========================================================================== */
 .dashboard {
   max-width: 1180px;
   margin: 0 auto;
   padding: clamp(16px, 4vw, 32px);
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: var(--sp-3);
 }
 
 .card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-soft);
   padding: clamp(18px, 3vw, 28px);
 }
 
@@ -186,19 +99,16 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 .card-subheading {
   margin: 2px 0 0;
   font-size: 0.8rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   font-weight: 500;
 }
 
-/* ==========================================================================
-   Lily + Health card
-   ========================================================================== */
 .lily-card {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: clamp(20px, 4vw, 40px);
   align-items: center;
-  background: linear-gradient(180deg, var(--blue-100) 0%, var(--white) 60%);
+  background: linear-gradient(180deg, var(--bg-tint) 0%, var(--bg-surface) 60%);
 }
 
 .lily-card__pet {
@@ -213,8 +123,8 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   width: 132px;
   height: 132px;
   border-radius: var(--radius-md);
-  background: var(--white);
-  border: 3px dashed var(--blue-500);
+  background: var(--bg-surface);
+  border: 3px dashed var(--coral-500);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -236,12 +146,12 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 
 .lily-mood {
   font-size: 0.92rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   margin: 0;
   max-width: 20ch;
 }
 
-.lily-mood strong { color: var(--blue-700); }
+.lily-mood strong { color: var(--coral-600); }
 
 .lily-card__score { display: flex; flex-direction: column; gap: 10px; }
 
@@ -258,59 +168,55 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   font-size: 0.76rem;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.status-good  { background: var(--green-100); color: var(--green-700); }
-.status-warn  { background: var(--amber-100); color: var(--amber-700); }
-.status-bad   { background: var(--coral-100); color: var(--coral-700); }
+.status-good { background: var(--mint-100); color: var(--mint-700); }
+.status-warn { background: var(--gold-100); color: var(--gold-700); }
+.status-bad { background: var(--danger-100); color: var(--danger); }
 
 .score-number {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  font-family: var(--font-display);
 }
 
-.score-value { font-size: 2.6rem; font-weight: 800; color: var(--blue-700); line-height: 1; }
-.score-max { font-size: 1.1rem; color: var(--navy-soft); font-weight: 600; }
+.score-value { font-family: var(--font-pixel); font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.2rem); color: var(--mint-500); line-height: 1; }
+.score-max { font-size: 1.1rem; color: var(--ink-700); font-weight: 600; font-family: var(--font-display); }
 
 .health-bar {
   width: 100%;
   max-width: 420px;
   height: 14px;
-  border-radius: 999px;
-  background: var(--blue-100);
-  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-tint-strong);
+  border: 1px solid var(--line-strong);
   overflow: hidden;
 }
 
 .health-bar__fill {
   height: 100%;
   width: 0%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--green-500), var(--blue-500));
-  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--mint-500), var(--gold-500));
+  transition: width 0.8s var(--ease);
 }
 
-.score-hint { margin: 0; font-size: 0.85rem; color: var(--navy-soft); }
+.score-hint { margin: 0; font-size: 0.85rem; color: var(--ink-700); }
 
-/* ==========================================================================
-   Financial summary
-   ========================================================================== */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--gap);
+  gap: var(--sp-3);
 }
 
 .summary-card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-soft);
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -322,34 +228,34 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 
 .summary-label {
   font-size: 0.8rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   font-weight: 600;
 }
 
-.summary-value { font-size: 1.35rem; color: var(--navy); }
+.summary-value { font-size: 1.35rem; color: var(--ink-900); }
 
-.summary-value--actual { color: var(--blue-700); }
+.summary-value--actual { color: var(--coral-600); }
 
 .summary-card--rate { gap: 8px; }
 
 .target-rate {
   margin-top: 6px;
   padding-top: 10px;
-  border-top: 1px dashed var(--border);
+  border-top: 1px dashed var(--line-strong);
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
 }
 
 .target-rate__label { font-weight: 600; }
 
-.target-rate__value { font-size: 0.9rem; color: var(--navy); }
+.target-rate__value { font-size: 0.9rem; color: var(--ink-900); }
 
 .target-rate__input {
   width: 56px;
-  border: 1px solid var(--blue-500);
+  border: 1px solid var(--coral-500);
   border-radius: var(--radius-sm);
   padding: 2px 6px;
   font-family: var(--font-mono);
@@ -366,15 +272,12 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   line-height: 1;
 }
 
-.icon-btn:hover { background: var(--blue-100); }
+.icon-btn:hover { background: var(--bg-tint); }
 
-/* ==========================================================================
-   Chart + breakdown split
-   ========================================================================== */
 .split-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: var(--gap);
+  gap: var(--sp-3);
   align-items: stretch;
 }
 
@@ -385,12 +288,12 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   font-weight: 600;
 }
 
 .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-.legend-dot--income { background: var(--blue-600); }
+.legend-dot--income { background: var(--mint-500); }
 .legend-dot--expense { background: var(--coral-500); }
 
 .bar-chart {
@@ -400,7 +303,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   gap: clamp(48px, 10vw, 110px);
   height: 240px;
   padding-top: 34px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line-strong);
 }
 
 .bar-chart__group {
@@ -437,16 +340,16 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   white-space: nowrap;
 }
 
-.bar-chart__bar--income { background: var(--blue-600); }
+.bar-chart__bar--income { background: var(--mint-500); }
 .bar-chart__bar--expense { background: var(--coral-500); }
 
 .bar-chart__label {
   font-size: 0.82rem;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   font-weight: 700;
 }
 
@@ -465,24 +368,21 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   font-weight: 600;
 }
 
-.breakdown-row__amount { font-family: var(--font-mono); color: var(--navy-soft); font-weight: 700; }
+.breakdown-row__amount { font-family: var(--font-mono); color: var(--ink-700); font-weight: 700; }
 
 .breakdown-track {
   height: 10px;
-  border-radius: 999px;
-  background: var(--blue-100);
+  border-radius: var(--radius-pill);
+  background: var(--bg-tint);
   overflow: hidden;
 }
 
 .breakdown-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   transition: width 0.6s ease;
 }
 
-/* ==========================================================================
-   Spending trend
-   ========================================================================== */
 .trend-body {
   display: flex;
   align-items: center;
@@ -496,7 +396,7 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   gap: 4px;
 }
 
-.trend-figure__label { font-size: 0.8rem; color: var(--navy-soft); font-weight: 600; }
+.trend-figure__label { font-size: 0.8rem; color: var(--ink-700); font-weight: 600; }
 .trend-figure__value { font-size: 1.3rem; }
 
 .trend-arrow {
@@ -504,30 +404,27 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   font-weight: 700;
 }
 
-.trend-arrow--down { color: var(--green-600, var(--green-700)); }
-.trend-arrow--up { color: var(--coral-700); }
+.trend-arrow--down { color: var(--mint-700); }
+.trend-arrow--up { color: var(--danger); }
 
 .trend-indicator {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--green-100);
-  color: var(--green-700);
+  background: var(--mint-100);
+  color: var(--mint-700);
   border-radius: var(--radius-md);
   padding: 12px 18px;
 }
 
 .trend-indicator strong { display: block; font-size: 0.95rem; }
-.trend-indicator p { margin: 2px 0 0; font-size: 0.82rem; color: var(--green-700); opacity: 0.85; }
+.trend-indicator p { margin: 2px 0 0; font-size: 0.82rem; color: var(--mint-700); opacity: 0.85; }
 .trend-indicator span { font-size: 1.4rem; }
 
-.trend-indicator--bad { background: var(--coral-100); color: var(--coral-700); }
-.trend-indicator--bad p { color: var(--coral-700); }
+.trend-indicator--bad { background: var(--danger-100); color: var(--danger); }
+.trend-indicator--bad p { color: var(--danger); }
 
-/* ==========================================================================
-   Transactions
-   ========================================================================== */
 .tx-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .btn {
@@ -543,10 +440,10 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 .btn:hover { filter: brightness(0.96); }
 .btn:active { transform: translateY(1px); }
 
-.btn--income { background: var(--green-500); color: var(--white); }
-.btn--expense { background: var(--coral-500); color: var(--white); }
-.btn--primary { background: var(--blue-700); color: var(--white); }
-.btn--ghost { background: var(--blue-100); color: var(--blue-700); }
+.btn--income { background: var(--mint-500); color: var(--bg-surface); }
+.btn--expense { background: var(--coral-500); color: var(--bg-surface); }
+.btn--primary { background: var(--coral-600); color: var(--bg-surface); }
+.btn--ghost { background: var(--bg-tint); color: var(--coral-600); }
 
 .table-wrap { overflow-x: auto; }
 
@@ -562,41 +459,41 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--navy-soft);
+  color: var(--ink-700);
   font-weight: 700;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line-strong);
 }
 
 .tx-table td {
   padding: 12px;
-  border-bottom: 1px solid var(--blue-100);
+  border-bottom: 1px solid var(--bg-tint);
   vertical-align: middle;
 }
 
-.tx-table tbody tr:hover { background: var(--blue-50); }
+.tx-table tbody tr:hover { background: var(--bg-cream); }
 
 .align-right { text-align: right; }
 
 .tag {
   display: inline-block;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.74rem;
   font-weight: 700;
 }
 
-.tag--income { background: var(--green-100); color: var(--green-700); }
-.tag--expense { background: var(--coral-100); color: var(--coral-700); }
+.tag--income { background: var(--mint-100); color: var(--mint-700); }
+.tag--expense { background: var(--danger-100); color: var(--danger); }
 
-.amount--income { color: var(--green-700); font-family: var(--font-mono); font-weight: 700; }
-.amount--expense { color: var(--coral-700); font-family: var(--font-mono); font-weight: 700; }
+.amount--income { color: var(--mint-700); font-family: var(--font-mono); font-weight: 700; }
+.amount--expense { color: var(--danger); font-family: var(--font-mono); font-weight: 700; }
 
 .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
 
 .row-actions button {
-  border: 1px solid var(--border);
-  background: var(--white);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-surface);
   border-radius: var(--radius-sm);
   padding: 5px 10px;
   font-size: 0.78rem;
@@ -604,11 +501,8 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   cursor: pointer;
 }
 
-.row-actions button:hover { background: var(--blue-100); }
+.row-actions button:hover { background: var(--bg-tint); }
 
-/* ==========================================================================
-   Lily floating widget
-   ========================================================================== */
 .lily-widget {
   position: fixed;
   right: clamp(14px, 3vw, 28px);
@@ -624,9 +518,9 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 3px solid var(--white);
-  background: var(--blue-100);
-  box-shadow: var(--shadow-card);
+  border: 3px solid var(--bg-surface);
+  background: var(--bg-tint);
+  box-shadow: var(--shadow-soft);
   cursor: pointer;
   padding: 6px;
   overflow: hidden;
@@ -653,36 +547,33 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 .lily-widget__body[hidden] { display: none; }
 
 .speech-bubble {
-  background: var(--white);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
+  background: var(--bg-surface);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
   border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
   padding: 12px 16px;
   font-size: 0.85rem;
 }
 
 .speech-bubble p { margin: 0 0 4px; }
-.speech-bubble p:last-child { margin-bottom: 0; color: var(--navy-soft); }
+.speech-bubble p:last-child { margin-bottom: 0; color: var(--ink-700); }
 
 .lily-widget__link {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--blue-700);
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  color: var(--coral-600);
+  background: var(--bg-surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
   padding: 6px 14px;
 }
 
-.lily-widget__link:hover { background: var(--blue-100); }
+.lily-widget__link:hover { background: var(--bg-tint); }
 
-/* ==========================================================================
-   Modal
-   ========================================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(27, 42, 65, 0.35);
+  background: rgba(43, 33, 27, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -693,12 +584,12 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 .modal-overlay[hidden] { display: none; }
 
 .modal {
-  background: var(--white);
+  background: var(--bg-surface);
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 420px;
   padding: 22px 24px 24px;
-  box-shadow: 0 20px 50px rgba(27, 42, 65, 0.25);
+  box-shadow: 0 20px 50px rgba(43, 33, 27, 0.25);
 }
 
 .modal__header {
@@ -710,41 +601,41 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
 
 .modal__form { display: flex; flex-direction: column; gap: 14px; }
 
-.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--navy-soft); }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--ink-700); }
 
 .field input, .field select {
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-weight: 500;
-  color: var(--navy);
-  background: var(--blue-50);
+  color: var(--ink-900);
+  background: var(--bg-cream);
 }
 
 .field input:focus, .field select:focus {
-  background: var(--white);
-  border-color: var(--blue-500);
+  background: var(--bg-surface);
+  border-color: var(--coral-500);
 }
 
 .input-prefix {
   display: flex;
   align-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
-  background: var(--blue-50);
+  background: var(--bg-cream);
   overflow: hidden;
 }
 
 .input-prefix:focus-within {
-  background: var(--white);
-  border-color: var(--blue-500);
+  background: var(--bg-surface);
+  border-color: var(--coral-500);
 }
 
 .input-prefix__symbol {
   padding: 10px 0 10px 12px;
   font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--navy-soft);
+  color: var(--ink-700);
 }
 
 .input-prefix input {
@@ -766,9 +657,8 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--navy); }
   margin-top: 6px;
 }
 
-/* ==========================================================================
-   Responsive
-   ========================================================================== */
+[data-mono] { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.02em; }
+
 @media (max-width: 900px) {
   .split-grid { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
