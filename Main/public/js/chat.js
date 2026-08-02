@@ -5,22 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const lilyFace = document.getElementById('lilyFace');
   const chatReset = document.getElementById('chatReset');
   const suggestedList = document.getElementById('suggestedList');
-
-  const responses = [
-    { keywords: ['overspend', 'over spending', 'spending too much'], reply: "Meow... your expenses are becoming high compared to your income. Let's try reducing unnecessary spending." },
-    { keywords: ['health', 'score'], reply: 'Meow! Your financial health score is 78% — that\'s Good! A few small changes could push you into Excellent 🐾' },
-    { keywords: ['save more', 'saving', 'savings'], reply: 'Try setting a small automatic transfer to savings right after payday — even ₱200 a week adds up fast. Meow!' },
-    { keywords: ['improve', 'better'], reply: 'Trimming your entertainment expenses a little could boost your savings rate nicely this month.' },
-    { keywords: ['goal', 'goals'], reply: 'You\'re currently near your savings goal! Keep the pace and you\'ll hit it right on schedule.' },
-  ];
-
-  const fallback = "Meow! I'm still learning to answer that one — try asking about your savings, spending, or goals!";
-
-  function getReply(text) {
-    const lower = text.toLowerCase();
-    const match = responses.find(r => r.keywords.some(k => lower.includes(k)));
-    return match ? match.reply : fallback;
-  }
+  const statusBadge = document.getElementById('statusBadge'); // Make sure you have a badge element!
 
   function scrollToBottom() {
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -45,33 +30,119 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollToBottom();
   }
 
-  function sendMessage(text) {
-    const trimmed = text.trim();
-    if (!trimmed) return;
+  /*
+  =====================================================
+  API FETCH: Send Intent to Node.js Backend (FDT Engine)
+  =====================================================
+  */
+  async function fetchLilyResponse(intent) {
+    try {
+      const response = await fetch('/api/financial/lily-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intent })
+      });
 
-    appendMessage(trimmed, 'user');
+      const resData = await response.json();
+      return resData;
+    } catch (error) {
+      console.error("FDT API Error:", error);
+      return null;
+    }
+  }
 
+  /*
+  =====================================================
+  MAIN CHAT PROCESSOR
+  =====================================================
+  */
+  async function sendIntent(intent, userLabelText) {
+    // 1. Render user message in UI
+    appendMessage(userLabelText, 'user');
+
+    // 2. Show typing indicator & start talking animation
     typingIndicator.hidden = false;
     lilyFace.classList.add('is-talking');
     scrollToBottom();
 
-    const delay = 900 + Math.random() * 700;
+    // 3. Query FDT Backend Engine
+    const data = await fetchLilyResponse(intent);
+
+    const delay = 600 + Math.random() * 400; // Realistic delay
     setTimeout(() => {
       typingIndicator.hidden = true;
       lilyFace.classList.remove('is-talking');
-      appendMessage(getReply(trimmed), 'lily');
+
+      if (!data || !data.response) {
+        appendMessage("Meow... I couldn't reach my financial server right now. Try again in a bit!", 'lily');
+        return;
+      }
+
+      // 4. Update Lily Visual State (GIF & Badge Color)
+      if (data.response.gifUrl && lilyFace.tagName === 'IMG') {
+        lilyFace.src = data.response.gifUrl;
+      }
+      if (statusBadge && data.response.badgeColor) {
+        statusBadge.style.backgroundColor = data.response.badgeColor;
+        statusBadge.textContent = data.response.alertTier;
+      }
+
+      // 5. Render Lily's FDT Advisory Response
+      appendMessage(data.response.message, 'lily');
+
+      // 6. Update Prompt Chips dynamically based on FDT Level
+      renderDynamicChips(data.nestedQuestions, data.isTerminal);
+
     }, delay);
   }
 
-  suggestedList.querySelectorAll('.suggested-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      sendMessage(chip.textContent);
-    });
-  });
+  /*
+  =====================================================
+  DYNAMIC BUTTON RENDERER (Renders Level 2 & 3 Nodes)
+  =====================================================
+  */
+  function renderDynamicChips(nestedQuestions, isTerminal) {
+    suggestedList.innerHTML = ''; // Clear existing chips
+
+    if (isTerminal || !nestedQuestions || nestedQuestions.length === 0) {
+      // LEAF NODE REACHED: Offer return to main menu
+      const resetChip = document.createElement('button');
+      resetChip.className = 'suggested-chip reset-chip';
+      resetChip.textContent = 'Back to Main Menu 🔄';
+      resetChip.addEventListener('click', () => {
+        sendIntent('CHECK_HEALTH', 'How is my financial health? 🏥');
+      });
+      suggestedList.appendChild(resetChip);
+    } else {
+      // ACTIVE BRANCH: Render nested question options
+      nestedQuestions.forEach(q => {
+        const chip = document.createElement('button');
+        chip.className = 'suggested-chip';
+        chip.textContent = q.label;
+        chip.addEventListener('click', () => {
+          sendIntent(q.intent, q.label);
+        });
+        suggestedList.appendChild(chip);
+      });
+    }
+  }
+
+  /*
+  =====================================================
+  INITIALIZATION & RESET
+  =====================================================
+  */
+  function initChat() {
+    chatWindow.innerHTML = '';
+    // Start initial conversation by triggering root health evaluation
+    sendIntent('CHECK_HEALTH', 'How is my financial health? 🏥');
+  }
 
   chatReset.addEventListener('click', () => {
-    chatWindow.innerHTML = '';
-    appendMessage("Meow! I'm Lily, your financial health coach. Ask me anything about your money — savings, spending, or goals 🐾", 'lily');
+    initChat();
   });
+
+  // Start chat on load
+  initChat();
 
 });

@@ -1,4 +1,4 @@
-// fuzzyEngine.js
+// src/utils/fuzzyEngine.js
 
 // 1. Triangular Membership Function: Returns weight between 0.0 and 1.0
 function getTriangularMembership(x, a, b, c) {
@@ -6,10 +6,11 @@ function getTriangularMembership(x, a, b, c) {
   if (x === b) return 1;
   if (x > a && x < b) return (x - a) / (b - a);
   if (x > b && x < c) return (c - x) / (c - b);
+  return 0; // Fallback to avoid returning undefined
 }
 
 // 2. Antecedent Evaluation: Computes membership for 5 financial tiers
-export function evaluateAntecedents(spendRatio) {
+function evaluateAntecedents(spendRatio) {
   return {
     veryLow:  getTriangularMembership(spendRatio, 0.0, 0.0, 0.25),
     low:      getTriangularMembership(spendRatio, 0.15, 0.30, 0.45),
@@ -20,7 +21,7 @@ export function evaluateAntecedents(spendRatio) {
 }
 
 // 3. Inference Engine: Gets the dominant fuzzy tier from membership weights
-export function getDominantFuzzyTier(spendRatio) {
+function getDominantFuzzyTier(spendRatio) {
   const memberships = evaluateAntecedents(spendRatio);
   let dominantTier = 'moderate';
   let maxWeight = -1;
@@ -34,3 +35,14 @@ export function getDominantFuzzyTier(spendRatio) {
 
   return { dominantTier, memberships };
 }
+
+/*
+=====================================
+EXPORTS (CommonJS for Node.js)
+=====================================
+*/
+module.exports = {
+  getTriangularMembership,
+  evaluateAntecedents,
+  getDominantFuzzyTier
+};

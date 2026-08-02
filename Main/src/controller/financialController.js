@@ -15,7 +15,18 @@ async function getFinancialSummary(req, res) {
         });
     }
 }
+async function handleLilyChat(req, res) {
+    try {
+        const { intent } = req.body;
+        const result = await financialService.processLilyChat(intent);
+        res.json(result);
+    } catch (error) {
+        console.error("Error processing Lily chat:", error);
+        res.status(500).json({ error: "Failed to process chat intent" });
+    }
+}
 
 module.exports = {
-    getFinancialSummary
+    getFinancialSummary,
+    handleLilyChat
 };
