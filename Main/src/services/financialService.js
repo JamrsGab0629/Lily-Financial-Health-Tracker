@@ -17,7 +17,7 @@
             .filter(transaction => transaction.type === "expense")
             .reduce((total, transaction) => total + Number(transaction.amount), 0);
     }
-
+    
     function calculateBalance(income, expenses) {
         return income - expenses;
     }
