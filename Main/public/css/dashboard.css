@@ -173,9 +173,9 @@
   letter-spacing: 0.04em;
 }
 
-.status-good { background: var(--mint-100); color: var(--mint-700); }
-.status-warn { background: var(--gold-100); color: var(--gold-700); }
-.status-bad { background: var(--danger-100); color: var(--danger); }
+.score-value.status-good { color: var(--mint-700); }
+.score-value.status-warn { color: var(--gold-700); }
+.score-value.status-bad  { color: var(--danger); }
 
 .score-number {
   display: flex;
@@ -183,7 +183,16 @@
   gap: 6px;
 }
 
-.score-value { font-family: var(--font-pixel); font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.2rem); color: var(--mint-500); line-height: 1; }
+ .score-value { 
+  /* Fallback to Space Mono / Monospace so digits always render sharply */
+  font-family: var(--font-pixel), var(--font-mono), monospace; 
+  font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.2rem); 
+  
+  /* Change color based on score severity or keep it bold dark/red for CRITICAL */
+  color: var(--danger, #e53e3e); 
+  font-weight: 700;
+  line-height: 1; 
+}
 .score-max { font-size: 1.1rem; color: var(--ink-700); font-weight: 600; font-family: var(--font-display); }
 
 .health-bar {

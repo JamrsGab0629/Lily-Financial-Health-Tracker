@@ -2,7 +2,8 @@ const settingsService = require("../services/settingsService");
 
 async function getSettings(req, res) {
   try {
-    const settings = await settingsService.getSettings();
+    
+    const settings = await settingsService.fetchUserSettings(); 
     res.status(200).json(settings);
   } catch (error) {
     console.error(error);
@@ -13,7 +14,8 @@ async function getSettings(req, res) {
 async function updateSettings(req, res) {
   try {
     const { target_savings_rate } = req.body;
-    const settings = await settingsService.updateSettings(target_savings_rate);
+    // 🔀 Changed from updateSettings() to modifyUserSettings()
+    const settings = await settingsService.modifyUserSettings(target_savings_rate); 
     res.status(200).json({
       message: "Settings updated successfully",
       settings

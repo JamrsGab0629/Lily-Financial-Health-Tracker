@@ -36,15 +36,35 @@ async function renderHealthCard() {
     const summarySavings = document.getElementById('summarySavings');
     const summarySavingsRate = document.getElementById('summarySavingsRate');
 
+    // Extract Expense Value (Handles both totalExpenses and totalExpense key names)
+    const totalExp = summary.totalExpenses ?? summary.totalExpense ?? 0;
+
     // Update Summary Cards
     if (summaryIncome) summaryIncome.textContent = `₱${Number(summary.totalIncome || 0).toLocaleString()}`;
-    if (summaryExpenses) summaryExpenses.textContent = `₱${Number(summary.totalExpenses || 0).toLocaleString()}`;
+    if (summaryExpenses) summaryExpenses.textContent = `₱${Number(totalExp).toLocaleString()}`;
     if (summarySavings) summarySavings.textContent = `₱${Number(summary.balance || 0).toLocaleString()}`;
     if (summarySavingsRate) summarySavingsRate.textContent = `${summary.savingsPercentage || 0}%`;
 
-    // Update Health Score
-    const score = summary.healthScore ?? 0;
-    if (scoreValue) scoreValue.textContent = score;
+    // Calculate/Extract Health Score safely (Handles null/undefined & ensures 0 renders properly)
+    let score = summary.healthScore;
+    if (score === undefined || score === null) {
+      const inc = Number(summary.totalIncome || 0);
+      const exp = Number(totalExp);
+      
+      if (inc > 0) {
+        const ratio = (exp / inc);
+        score = Math.max(0, Math.min(100, Math.round((1 - ratio) * 100)));
+      } else {
+        score = 100;
+      }
+    }
+
+    // Force score to render explicitly as text (prevents empty display when score is 0)
+    if (scoreValue) {
+  scoreValue.textContent = String(score);
+  scoreValue.className = `score-value ${score >= 70 ? 'status-good' : score >= 40 ? 'status-warn' : 'status-bad'}`;
+}
+
     if (statusEl) {
       statusEl.textContent = summary.lily?.status || "Good";
       statusEl.classList.remove('status-good', 'status-warn', 'status-bad');
@@ -52,11 +72,11 @@ async function renderHealthCard() {
       statusEl.classList.add(statusClass);
     }
 
-    // Update Lily's Mood, Avatar Sprite & Speech Bubble Message
+    // Update Lily's Mood & Speech Bubble Message
     if (summary.lily) {
       if (moodEl) moodEl.innerHTML = `Lily status: <strong>${summary.lily.status}</strong> ${summary.lily.emoji || ''}`;
       if (lilyMessage) lilyMessage.textContent = `"${summary.lily.message}"`;
-      if (lilyAvatar) {
+      if (lilyAvatar && lilyAvatar.src) {
         const emotionMap = {
           angry: 'assets/lily/angry.png',
           sad: 'assets/lily/sad.png',

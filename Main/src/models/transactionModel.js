@@ -88,11 +88,38 @@
 
         return result.rows[0];
     }
+    async function getTotalsFromDB() {
+    const totalsQuery = `
+            SELECT 
+    COALESCE(SUM(CASE WHEN LOWER(TRIM(type)) = 'income' THEN amount::numeric ELSE 0 END), 0) AS total_income,
+    COALESCE(SUM(CASE WHEN LOWER(TRIM(type)) = 'expense' THEN amount::numeric ELSE 0 END), 0) AS total_expense
+    FROM transactions
+    WHERE DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE);
+        `;
+    const result = await pool.query(totalsQuery);
+    return result.rows[0];
+}
+
+async function getCategoryBreakdownFromDB() {
+    const categoryQuery = `
+        SELECT 
+            category, 
+            SUM(amount::numeric) AS total_amount 
+        FROM transactions 
+        WHERE LOWER(TRIM(type)) = 'expense'
+        GROUP BY category
+        ORDER BY total_amount DESC;
+    `;
+    const result = await pool.query(categoryQuery);
+    return result.rows;
+}
 
     module.exports = {
         createTransaction,
         getTransactions,
         getTransactionById, // Exported here!
         deleteTransaction,
-        updateTransaction
+        updateTransaction,
+        getTotalsFromDB,
+        getCategoryBreakdownFromDB
     };

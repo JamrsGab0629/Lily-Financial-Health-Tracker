@@ -5,7 +5,7 @@ export const QUESTION_TREE = {
     veryHigh: {
       alertTier: "Critical",
       badgeColor: "darkred",
-      gifUrl: "/assets/lily-furious.gif",
+      gifUrl: "",
       message: "🚨 CRITICAL STATUS! You are near or over your total budget limit!",
       isTerminal: false,
       nestedQuestions: [
