@@ -4,7 +4,7 @@ const { RESPONSES } = require("./responsesModel");
 
 const DECISION_TREE = {
   // ==========================================
-  // LEVEL 1: ROOT NODE (Fuzzy Governed Entry Point)
+  // LEVEL 1: ROOT NODE (Fuzzy Set Branches)
   // ==========================================
   "CHECK_HEALTH": {
     veryLow: {
@@ -35,7 +35,7 @@ const DECISION_TREE = {
   },
 
   // ==========================================
-  // LEVEL 2 / LEVEL 3: BRANCH & TERMINAL (LEAF) NODES
+  // LEVEL 2 & 3: TERMINAL ACTION NODES
   // ==========================================
   "REWARD_CHECK": {
     default: { response: RESPONSES.REWARD_APPROVED, isTerminal: true, nestedQuestions: [] }
@@ -61,8 +61,6 @@ const DECISION_TREE = {
   "TOP_TRANSACTIONS": {
     default: { response: RESPONSES.TRANSACTIONS_AUDITED, isTerminal: true, nestedQuestions: [] }
   },
-
-  // Direct Terminal Leaf Node
   "FREEZE_BUDGET": {
     default: { response: RESPONSES.FREEZE_EXECUTED, isTerminal: true, nestedQuestions: [] }
   },

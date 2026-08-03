@@ -1,7 +1,7 @@
 // src/models/responsesModel.js
 
 const RESPONSES = {
-  // --- LEVEL 1 RESPONSES ---
+  // --- LEVEL 1: FUZZY TIER ENTRY RESPONSES ---
   OPTIMAL: {
     alertTier: "Optimal",
     badgeColor: "#28a745",
@@ -33,7 +33,7 @@ const RESPONSES = {
     message: "🚨 CRITICAL STATUS! Spending ratio is near or exceeding 100%!"
   },
 
-  // --- LEVEL 2 / TERMINAL RESPONSES (Add these!) ---
+  // --- LEVEL 2 & 3: ACTION / LEAF NODE RESPONSES ---
   REWARD_APPROVED: {
     alertTier: "Action Complete",
     badgeColor: "#28a745",

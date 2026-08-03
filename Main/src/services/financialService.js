@@ -2,7 +2,7 @@
 const transactionModel = require("../models/transactionModel");
 
 // 1. Import Fuzzy Engine and Decision Tree models
-const { getDominantFuzzyTier } = require("../utils/fuzzyEngine");
+const { getDominantFuzzyTier, calculateHealthScore } = require("../utils/fuzzyEngine");
 const { DECISION_TREE } = require("../models/decisionTreeModel");
 
 /*
@@ -46,8 +46,8 @@ async function getFinancialSummary() {
   return {
     totalIncome,
     totalExpense,
-    balance,           // 👈 Added so frontend receives summary.balance
-    savingsPercentage, // 👈 Added so frontend receives summary.savingsPercentage
+    balance,
+    savingsPercentage,
     netSavings: balance,
     expenseRatio: parseFloat(expenseRatio.toFixed(2)),
     categoryBreakdown
@@ -64,10 +64,13 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
   const summary = await getFinancialSummary();
   const spendRatio = summary.expenseRatio || 0;
 
-  // Run Fuzzy Engine
+  // 1. Run Fuzzy Engine
   const { dominantTier, memberships } = getDominantFuzzyTier(spendRatio);
+  const healthScore = calculateHealthScore ? calculateHealthScore(memberships) : Math.max(0, 100 - spendRatio);
+  
   const rawNode = DECISION_TREE[intent]?.[dominantTier] || DECISION_TREE[intent]?.default;
 
+  // Fallback if node isn't found
   if (!rawNode) {
     return {
       evaluatedTier: dominantTier,
@@ -79,7 +82,13 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
         message: "Conversation path completed."
       },
       isTerminal: true,
-      nestedQuestions: []
+      nestedQuestions: [],
+      proofOfReasoning: {
+        crispInput: `Spend Ratio = ${spendRatio}%`,
+        dominantSet: dominantTier,
+        activeRule: `IF spendRatio IS ${dominantTier} THEN status IS Complete`,
+        healthScore: Math.round(healthScore)
+      }
     };
   }
 
@@ -98,14 +107,24 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     }
   }
 
+  // Build the proof of reasoning object required by chat.js
+  const proofOfReasoning = {
+    crispInput: `Expense Ratio = ${spendRatio.toFixed(2)}%`,
+    dominantSet: dominantTier.toUpperCase(),
+    activeRule: `IF expense_ratio IS ${dominantTier} THEN health_status IS ${node.response?.alertTier || 'Evaluated'}`,
+    healthScore: Math.round(healthScore)
+  };
+
   return {
     financialSummary: summary,
     evaluatedTier: dominantTier,
     fuzzyMemberships: memberships,
+    proofOfReasoning: proofOfReasoning,
     ...node
   };
 }
 
+// 👈 THIS IS WHAT EXPORTS IT SO FINANCIALCONTROLLER CAN USE IT!
 module.exports = {
   getFinancialSummary,
   processLilyChat

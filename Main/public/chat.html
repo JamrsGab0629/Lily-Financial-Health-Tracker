@@ -27,41 +27,39 @@
 
 <main class="chat-shell">
 
+  <!-- LEFT SIDEBAR -->
   <aside class="chat-side card">
     <div class="chat-side-lily">
       <div class="lily-avatar-frame chat-avatar-frame">
         <span class="lily-avatar chat-avatar-face" id="lilyFace">😺</span>
       </div>
       <p class="chat-side-name">Lily</p>
-      <span class="score-status status-good" id="lilyMoodBadge">Happy</span>
+      <span class="score-status status-good" id="lilyMoodBadge">Happy (M = 0.85)</span>
     </div>
 
+    <!-- Suggested Questions Block -->
     <div class="chat-side-block">
       <h3 class="chat-side-heading">Suggested Questions</h3>
       <div class="suggested-list" id="suggestedList">
-        <button type="button" class="suggested-chip">How is my financial health?</button>
-        <button type="button" class="suggested-chip">Am I overspending?</button>
-        <button type="button" class="suggested-chip">How can I save more?</button>
-        <button type="button" class="suggested-chip">What should I improve?</button>
+        <!-- Buttons rendered here -->
+      </div>
+    </div>
+
+    <!-- Fuzzy Dynamic Actions Block -->
+    <div class="chat-side-block">
+      <h3 class="chat-side-heading">Fuzzy Dynamic Actions</h3>
+      <div class="suggested-list" id="dynamicActionList">
+        <!-- Dynamic chips injected here -->
       </div>
     </div>
 
     <button type="button" class="btn btn--ghost chat-reset" id="chatReset">Start New Conversation</button>
   </aside>
 
+  <!-- RIGHT CHAT SECTION -->
   <section class="chat-main card">
     <div class="chat-window" id="chatWindow">
-
-      <div class="msg msg--lily">
-        <span class="msg-avatar" aria-hidden="true">😺</span>
-        <div class="msg-bubble">Meow! I'm Lily, your financial health coach. Ask me anything about your money — savings, spending, or goals 🐾</div>
-      </div>
-
-      <div class="msg msg--lily">
-        <span class="msg-avatar" aria-hidden="true">😺</span>
-        <div class="msg-bubble">Meow! Your savings are improving. Keep building good habits!</div>
-      </div>
-
+      <!-- Chat bubbles append here -->
     </div>
 
     <div class="typing-indicator" id="typingIndicator" hidden>

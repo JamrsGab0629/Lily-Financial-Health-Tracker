@@ -44,13 +44,22 @@ async function handleLilyChat(req, res) {
     try {
         const { intent } = req.body;
         const result = await financialService.processLilyChat(intent);
-        res.json(result);
+        
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
     } catch (error) {
         console.error("Error processing Lily chat:", error);
-        res.status(500).json({ error: "Failed to process chat intent" });
+        
+        // 💡 SEND THE EXACT ERROR MESSAGE BACK TO THE BROWSER FOR DEBUGGING
+        return res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            stack: error.stack 
+        });
     }
 }
-
 module.exports = {
     getFinancialSummary,
     handleLilyChat
