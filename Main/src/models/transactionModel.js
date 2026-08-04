@@ -116,13 +116,38 @@ async function getCategoryBreakdownFromDB() {
 
 /*
 =====================================
+MONTHLY COMPARISON QUERIES
+=====================================
+*/
+
+async function getMonthlyComparisonFromDB() {
+    const comparisonQuery = `
+        SELECT 
+            -- Current Month
+            COALESCE(SUM(CASE WHEN DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE) 
+                              AND LOWER(TRIM(type)) = 'income' THEN amount::numeric ELSE 0 END), 0) AS current_month_income,
+            COALESCE(SUM(CASE WHEN DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE) 
+                              AND LOWER(TRIM(type)) = 'expense' THEN amount::numeric ELSE 0 END), 0) AS current_month_expense,
+            
+            -- Last Month
+            COALESCE(SUM(CASE WHEN DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') 
+                              AND LOWER(TRIM(type)) = 'income' THEN amount::numeric ELSE 0 END), 0) AS last_month_income,
+            COALESCE(SUM(CASE WHEN DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') 
+                              AND LOWER(TRIM(type)) = 'expense' THEN amount::numeric ELSE 0 END), 0) AS last_month_expense
+        FROM transactions;
+    `;
+    const result = await pool.query(comparisonQuery);
+    return result.rows[0];
+}
+
+/*
+=====================================
 SETTINGS / TARGET SAVINGS RATE QUERIES
 =====================================
 */
 
 async function getTargetSavingsRate() {
     try {
-        // Adjust 'target_savings_rate' if your column is named 'target_savings_percent'
         const result = await pool.query(
             `SELECT target_savings_rate FROM settings LIMIT 1`
         );
@@ -152,6 +177,7 @@ module.exports = {
     updateTransaction,
     getTotalsFromDB,
     getCategoryBreakdownFromDB,
+    getMonthlyComparisonFromDB, // Exported here!
     getTargetSavingsRate,
     updateTargetSavingsRate
 };

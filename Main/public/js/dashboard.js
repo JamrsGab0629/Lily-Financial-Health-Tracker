@@ -45,7 +45,7 @@ async function renderHealthCard() {
     if (summarySavings) summarySavings.textContent = `₱${Number(summary.balance || 0).toLocaleString()}`;
     if (summarySavingsRate) summarySavingsRate.textContent = `${summary.savingsPercentage || 0}%`;
 
-    // Calculate/Extract Health Score safely (Handles null/undefined & ensures 0 renders properly)
+    // Calculate/Extract Health Score safely
     let score = summary.healthScore;
     if (score === undefined || score === null) {
       const inc = Number(summary.totalIncome || 0);
@@ -59,11 +59,11 @@ async function renderHealthCard() {
       }
     }
 
-    // Force score to render explicitly as text (prevents empty display when score is 0)
+    // Force score to render explicitly as text
     if (scoreValue) {
-  scoreValue.textContent = String(score);
-  scoreValue.className = `score-value ${score >= 70 ? 'status-good' : score >= 40 ? 'status-warn' : 'status-bad'}`;
-}
+      scoreValue.textContent = String(score);
+      scoreValue.className = `score-value ${score >= 70 ? 'status-good' : score >= 40 ? 'status-warn' : 'status-bad'}`;
+    }
 
     if (statusEl) {
       statusEl.textContent = summary.lily?.status || "Good";
@@ -76,14 +76,21 @@ async function renderHealthCard() {
     if (summary.lily) {
       if (moodEl) moodEl.innerHTML = `Lily status: <strong>${summary.lily.status}</strong> ${summary.lily.emoji || ''}`;
       if (lilyMessage) lilyMessage.textContent = `"${summary.lily.message}"`;
-      if (lilyAvatar && lilyAvatar.src) {
-        const emotionMap = {
-          angry: 'assets/lily/angry.png',
-          sad: 'assets/lily/sad.png',
-          happy: 'assets/lily/happy.png',
-          very_happy: 'assets/lily/very_happy.png'
-        };
-        lilyAvatar.src = emotionMap[summary.lily.emotion] || 'assets/lily/happy.png';
+      
+      // 💡 UPDATED: Direct mapping to .gif assets with fallback URL from API
+      if (lilyAvatar) {
+        if (summary.lily.gifUrl) {
+          lilyAvatar.src = summary.lily.gifUrl;
+        } else {
+          const emotionMap = {
+            angry: '/assets/angry.gif',
+            sad: '/assets/sad.gif',
+            happy: '/assets/happy.gif',
+            very_happy: '/assets/happy.gif',
+            neutral: '/assets/neutral.gif'
+          };
+          lilyAvatar.src = emotionMap[summary.lily.emotion] || '/assets/neutral.gif';
+        }
       }
     }
 
@@ -116,7 +123,7 @@ async function renderMonthlyChart() {
       return;
     }
 
-    // Group income and expenses by Month (e.g. "Jun", "Jul")
+    // Group income and expenses by Month
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const grouped = {};
 
