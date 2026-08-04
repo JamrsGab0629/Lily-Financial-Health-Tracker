@@ -61,41 +61,40 @@
   </section>
 
   <!-- ============ FINANCIAL SUMMARY ============ -->
-  <!-- ============ FINANCIAL SUMMARY ============ -->
-<section class="summary-grid" aria-label="Financial summary">
+  <section class="summary-grid" aria-label="Financial summary">
 
-  <article class="summary-card">
-    <span class="summary-icon" aria-hidden="true">💰</span>
-    <span class="summary-label">Income</span>
-    <span class="summary-value" id="summaryIncome" data-mono>₱0</span>
-  </article>
+    <article class="summary-card">
+      <span class="summary-icon" aria-hidden="true">💰</span>
+      <span class="summary-label">Income</span>
+      <span class="summary-value" id="summaryIncome" data-mono>₱0</span>
+    </article>
 
-  <article class="summary-card">
-    <span class="summary-icon" aria-hidden="true">🧾</span>
-    <span class="summary-label">Expenses</span>
-    <span class="summary-value" id="summaryExpenses" data-mono>₱0</span>
-  </article>
+    <article class="summary-card">
+      <span class="summary-icon" aria-hidden="true">🧾</span>
+      <span class="summary-label">Expenses</span>
+      <span class="summary-value" id="summaryExpenses" data-mono>₱0</span>
+    </article>
 
-  <article class="summary-card">
-    <span class="summary-icon" aria-hidden="true">🐷</span>
-    <span class="summary-label">Savings</span>
-    <span class="summary-value" id="summarySavings" data-mono>₱0</span>
-  </article>
+    <article class="summary-card">
+      <span class="summary-icon" aria-hidden="true">🐷</span>
+      <span class="summary-label">Savings</span>
+      <span class="summary-value" id="summarySavings" data-mono>₱0</span>
+    </article>
 
-  <article class="summary-card summary-card--rate">
-    <span class="summary-icon" aria-hidden="true">📈</span>
-    <span class="summary-label">Savings Rate</span>
-    <span class="summary-value summary-value--actual" id="summarySavingsRate" data-mono>0%</span>
+    <article class="summary-card summary-card--rate">
+      <span class="summary-icon" aria-hidden="true">📈</span>
+      <span class="summary-label">Savings Rate</span>
+      <span class="summary-value summary-value--actual" id="summarySavingsRate" data-mono>0%</span>
 
-    <div class="target-rate">
-      <span class="target-rate__label">Target</span>
-      <span class="target-rate__value" id="targetRateValue" data-mono>30%</span>
-      <button class="icon-btn" id="editTargetBtn" aria-label="Edit target savings rate" title="Edit target">✏️</button>
-      <input type="number" id="targetRateInput" class="target-rate__input" value="30" min="0" max="100" hidden>
-    </div>
-  </article>
+      <div class="target-rate">
+        <span class="target-rate__label">Target</span>
+        <span class="target-rate__value" id="targetRateValue" data-mono>30%</span>
+        <button class="icon-btn" id="editTargetBtn" aria-label="Edit target savings rate" title="Edit target">✏️</button>
+        <input type="number" id="targetRateInput" class="target-rate__input" value="30" min="0" max="100" hidden>
+      </div>
+    </article>
 
-</section>
+  </section>
 
   <!-- ============ CHART + BREAKDOWN ============ -->
   <section class="split-grid">
@@ -194,7 +193,7 @@
       <p><strong>🐱 Lily says:</strong></p>
       <p id="lilyMessage">"Your spending is lower than last month! Keep it up!"</p>
     </div>
-    <a href="#" class="lily-widget__link">Talk to Lily →</a>
+    <a href="chat.html" class="lily-widget__link">Talk to Lily →</a>
   </div>
 </div>
 
@@ -219,12 +218,25 @@
         <span class="field__label">Category</span>
         <select name="category" required>
           <option value="" disabled selected>Select a category</option>
-          <option>Food</option>
-          <option>Transportation</option>
-          <option>Bills</option>
-          <option>Shopping</option>
-          <option>Income</option>
-          <option>Other</option>
+          
+          <!-- Income Category -->
+          <option value="Income">Income</option>
+
+          <!-- Needs (Essentials) -->
+          <optgroup label="Essential Needs 🏠">
+            <option value="Food">Food / Groceries</option>
+            <option value="Transportation">Transportation</option>
+            <option value="Bills">Bills</option>
+            <option value="Utilities">Utilities</option>
+          </optgroup>
+
+          <!-- Wants (Discretionary) -->
+          <optgroup label="Discretionary Wants 🛍️">
+            <option value="Shopping">Shopping</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Dining Out">Dining Out</option>
+            <option value="Other">Other</option>
+          </optgroup>
         </select>
       </label>
 

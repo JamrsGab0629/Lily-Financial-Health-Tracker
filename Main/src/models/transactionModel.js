@@ -1,101 +1,101 @@
-    const pool = require("../database/db");
+const pool = require("../database/db");
 
-    async function createTransaction(transaction) {
-        const {
+async function createTransaction(transaction) {
+    const {
+        type,
+        category,
+        amount,
+        transaction_date,
+        description
+    } = transaction;
+
+    const result = await pool.query(
+        `INSERT INTO transactions
+        (type, category, amount, transaction_date, description)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *`,
+        [
             type,
             category,
             amount,
             transaction_date,
             description
-        } = transaction;
+        ]
+    );
 
-        const result = await pool.query(
-            `INSERT INTO transactions
-            (type, category, amount, transaction_date, description)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING *`,
-            [
-                type,
-                category,
-                amount,
-                transaction_date,
-                description
-            ]
-        );
+    return result.rows[0];
+}
 
-        return result.rows[0];
-    }
+async function getTransactions() {
+    const result = await pool.query(
+        `SELECT * FROM transactions
+        ORDER BY transaction_date DESC, id DESC`
+    );
 
-    async function getTransactions() {
-        const result = await pool.query(
-            `SELECT * FROM transactions
-            ORDER BY transaction_date DESC, id DESC`
-        );
+    return result.rows;
+}
 
-        return result.rows;
-    }
+// Fetch transaction by ID
+async function getTransactionById(id) {
+    const result = await pool.query(
+        `SELECT * FROM transactions WHERE id = $1`,
+        [id]
+    );
 
-    // ADDED: Fetch transaction by ID so service layers can verify existence
-    async function getTransactionById(id) {
-        const result = await pool.query(
-            `SELECT * FROM transactions WHERE id = $1`,
-            [id]
-        );
+    return result.rows[0];
+}
 
-        return result.rows[0];
-    }
+async function deleteTransaction(id) {
+    const result = await pool.query(
+        `DELETE FROM transactions
+        WHERE id = $1
+        RETURNING *`,
+        [id]
+    );
 
-    async function deleteTransaction(id) {
-        const result = await pool.query(
-            `DELETE FROM transactions
-            WHERE id = $1
-            RETURNING *`,
-            [id]
-        );
+    return result.rows[0];
+}
 
-        return result.rows[0];
-    }
+async function updateTransaction(id, transaction) {
+    const {
+        type,
+        category,
+        amount,
+        transaction_date,
+        description
+    } = transaction;
 
-    async function updateTransaction(id, transaction) {
-
-        const {
+    const result = await pool.query(
+        `UPDATE transactions
+        SET
+            type = $1,
+            category = $2,
+            amount = $3,
+            transaction_date = $4,
+            description = $5
+        WHERE id = $6
+        RETURNING *`,
+        [
             type,
             category,
             amount,
             transaction_date,
-            description
-        } = transaction;
+            description,
+            id
+        ]
+    );
 
-        const result = await pool.query(
-            `UPDATE transactions
-            SET
-                type = $1,
-                category = $2,
-                amount = $3,
-                transaction_date = $4,
-                description = $5
-            WHERE id = $6
-            RETURNING *`,
-            [
-                type,
-                category,
-                amount,
-                transaction_date,
-                description,
-                id
-            ]
-        );
+    return result.rows[0];
+}
 
-        return result.rows[0];
-    }
-    async function getTotalsFromDB() {
+async function getTotalsFromDB() {
     const totalsQuery = `
-            SELECT 
-    COALESCE(SUM(CASE WHEN LOWER(TRIM(type)) = 'income' THEN amount::numeric ELSE 0 END), 0) AS total_income,
-    COALESCE(SUM(CASE WHEN LOWER(TRIM(type)) = 'expense' THEN amount::numeric ELSE 0 END), 0) AS total_expense
-    FROM transactions
-    WHERE DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE);
-        `;
+        SELECT 
+            COALESCE(SUM(CASE WHEN LOWER(TRIM(type)) = 'income' THEN amount::numeric ELSE 0 END), 0) AS total_income,
+            COALESCE(SUM(CASE WHEN LOWER(TRIM(type)) = 'expense' THEN amount::numeric ELSE 0 END), 0) AS total_expense
+        FROM transactions
+        WHERE DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE);
+    `;
     const result = await pool.query(totalsQuery);
     return result.rows[0];
 }
@@ -114,12 +114,44 @@ async function getCategoryBreakdownFromDB() {
     return result.rows;
 }
 
-    module.exports = {
-        createTransaction,
-        getTransactions,
-        getTransactionById, // Exported here!
-        deleteTransaction,
-        updateTransaction,
-        getTotalsFromDB,
-        getCategoryBreakdownFromDB
-    };
+/*
+=====================================
+SETTINGS / TARGET SAVINGS RATE QUERIES
+=====================================
+*/
+
+async function getTargetSavingsRate() {
+    try {
+        // Adjust 'target_savings_rate' if your column is named 'target_savings_percent'
+        const result = await pool.query(
+            `SELECT target_savings_rate FROM settings LIMIT 1`
+        );
+        if (result.rows.length > 0 && result.rows[0].target_savings_rate !== null) {
+            return parseFloat(result.rows[0].target_savings_rate);
+        }
+        return 20; // Default fallback percentage
+    } catch (error) {
+        console.warn("Could not fetch target savings rate from DB, defaulting to 20%:", error.message);
+        return 20;
+    }
+}
+
+async function updateTargetSavingsRate(newRate) {
+    const result = await pool.query(
+        `UPDATE settings SET target_savings_rate = $1 RETURNING *`,
+        [newRate]
+    );
+    return result.rows[0];
+}
+
+module.exports = {
+    createTransaction,
+    getTransactions,
+    getTransactionById,
+    deleteTransaction,
+    updateTransaction,
+    getTotalsFromDB,
+    getCategoryBreakdownFromDB,
+    getTargetSavingsRate,
+    updateTargetSavingsRate
+};
