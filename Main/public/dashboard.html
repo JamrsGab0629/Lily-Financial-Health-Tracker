@@ -16,7 +16,8 @@
 <header class="app-header">
   <div class="brand">
     <span class="brand-mark" aria-hidden="true">
-      <img src="assets/lily/happy.png" alt="" class="brand-mark__img">
+      <!-- Standardized to happy.gif asset -->
+      <img src="assets/happy.gif" alt="" class="brand-mark__img">
     </span>
     <div class="brand-text">  
       <span class="brand-name">Lily</span>
@@ -36,24 +37,25 @@
   <section class="card lily-card" aria-label="Financial health overview">
     <div class="lily-card__pet">
       <div class="lily-avatar-frame">
-        <img src="assets/lily/happy.png" alt="Lily the cat, looking happy" class="lily-avatar" id="lilyAvatar">
+        <!-- Default fallback matches the standard path updated in dashboard.js -->
+        <img src="assets/happy.gif" alt="Lily the cat" class="lily-avatar" id="lilyAvatar">
       </div>
-      <p class="lily-mood" id="lilyMood">Lily is feeling <strong>Happy</strong> 😺</p>
+      <p class="lily-mood" id="lilyMood">Lily status: <strong>Optimal</strong> 😺</p>
     </div>
 
     <div class="lily-card__score">
       <div class="score-heading">
         <h2>Financial Health</h2>
-        <span class="score-status status-good" id="scoreStatus">Good</span>
+        <span class="score-status status-good" id="scoreStatus">OPTIMAL</span>
       </div>
 
       <div class="score-number">
-        <span class="score-value" id="scoreValue">82</span>
+        <span class="score-value status-good" id="scoreValue">100</span>
         <span class="score-max">/ 100</span>
       </div>
 
-      <div class="health-bar" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100" aria-label="Financial health score">
-        <div class="health-bar__fill" id="healthBarFill"></div>
+      <div class="health-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Financial health score">
+        <div class="health-bar__fill" id="healthBarFill" style="width: 100%;"></div>
       </div>
 
       <p class="score-hint">Keep your savings rate above target to stay in the green.</p>
@@ -77,13 +79,13 @@
 
     <article class="summary-card">
       <span class="summary-icon" aria-hidden="true">🐷</span>
-      <span class="summary-label">Savings</span>
+      <span class="summary-label">Saved Money</span>
       <span class="summary-value" id="summarySavings" data-mono>₱0</span>
     </article>
 
     <article class="summary-card summary-card--rate">
       <span class="summary-icon" aria-hidden="true">📈</span>
-      <span class="summary-label">Savings Rate</span>
+      <span class="summary-label">Target Savings</span>
       <span class="summary-value summary-value--actual" id="summarySavingsRate" data-mono>0%</span>
 
       <div class="target-rate">
@@ -185,7 +187,7 @@
 <!-- ============ LILY QUICK INTERACTION (floating) ============ -->
 <div class="lily-widget" id="lilyWidget">
   <button class="lily-widget__toggle" id="lilyWidgetToggle" aria-expanded="true" aria-controls="lilyWidgetBody" aria-label="Toggle Lily's message">
-    <img src="assets/lily/happy.png" alt="" class="lily-widget__thumb">
+    <img src="assets/happy.gif" alt="" class="lily-widget__thumb">
   </button>
 
   <div class="lily-widget__body" id="lilyWidgetBody">
@@ -196,7 +198,28 @@
     <a href="chat.html" class="lily-widget__link">Talk to Lily →</a>
   </div>
 </div>
-
+<!-- Fuzzy Velocity Nudge Card -->
+<div class="nudge-card" id="fuzzyNudgeCard">
+  <div class="nudge-header">
+    <span class="nudge-icon">⚡</span>
+    <span class="nudge-title">Lily's Spending Velocity Nudge</span>
+    <span class="nudge-badge moderate" id="nudgeBadge">STABLE PACE</span>
+  </div>
+  <div class="nudge-body">
+    <p class="nudge-message" id="nudgeMessage">
+      Analyzing your spending velocity for this month...
+    </p>
+    <div class="nudge-progress-wrapper">
+      <div class="nudge-progress-labels">
+        <span>Target Pace Threshold</span>
+        <span id="nudgeAmountText">₱0</span>
+      </div>
+      <div class="nudge-bar-bg">
+        <div class="nudge-bar-fill" id="nudgeBarFill"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- ============ ADD TRANSACTION MODAL ============ -->
 <div class="modal-overlay" id="modalOverlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">

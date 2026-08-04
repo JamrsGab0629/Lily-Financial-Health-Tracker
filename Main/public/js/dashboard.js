@@ -36,7 +36,7 @@ async function renderHealthCard() {
     const summarySavings = document.getElementById('summarySavings');
     const summarySavingsRate = document.getElementById('summarySavingsRate');
 
-    // Extract Expense Value (Handles both totalExpenses and totalExpense key names)
+    // Extract Expense Value
     const totalExp = summary.totalExpenses ?? summary.totalExpense ?? 0;
 
     // Update Summary Cards
@@ -65,32 +65,39 @@ async function renderHealthCard() {
       scoreValue.className = `score-value ${score >= 70 ? 'status-good' : score >= 40 ? 'status-warn' : 'status-bad'}`;
     }
 
+    // Standardize Status Terminology to match Fuzzy Logic ("Optimal", "Moderate", "Critical")
+    let normalizedStatus = summary.lily?.status || (score >= 70 ? "Optimal" : score >= 40 ? "Moderate" : "Critical");
+    if (normalizedStatus.toLowerCase() === "excellent") normalizedStatus = "Optimal";
+
     if (statusEl) {
-      statusEl.textContent = summary.lily?.status || "Good";
-      statusEl.classList.remove('status-good', 'status-warn', 'status-bad');
+      statusEl.textContent = normalizedStatus.toUpperCase();
+      statusEl.classList.remove('status-good', 'status-warn', 'status-bad', 'status-optimal', 'status-warning', 'status-critical');
       const statusClass = score >= 70 ? 'status-good' : score >= 40 ? 'status-warn' : 'status-bad';
       statusEl.classList.add(statusClass);
     }
 
-    // Update Lily's Mood & Speech Bubble Message
+    // Update Lily's Mood & Avatar GIF
     if (summary.lily) {
-      if (moodEl) moodEl.innerHTML = `Lily status: <strong>${summary.lily.status}</strong> ${summary.lily.emoji || ''}`;
+      if (moodEl) moodEl.innerHTML = `Lily status: <strong>${normalizedStatus}</strong> ${summary.lily.emoji || ''}`;
       if (lilyMessage) lilyMessage.textContent = `"${summary.lily.message}"`;
       
-      // 💡 UPDATED: Direct mapping to .gif assets with fallback URL from API
       if (lilyAvatar) {
-        if (summary.lily.gifUrl) {
-          lilyAvatar.src = summary.lily.gifUrl;
-        } else {
-          const emotionMap = {
-            angry: '/assets/angry.gif',
-            sad: '/assets/sad.gif',
-            happy: '/assets/happy.gif',
-            very_happy: '/assets/happy.gif',
-            neutral: '/assets/neutral.gif'
-          };
-          lilyAvatar.src = emotionMap[summary.lily.emotion] || '/assets/neutral.gif';
-        }
+        const rawEmotion = (summary.lily.emotion || normalizedStatus || '').toLowerCase().trim();
+        const emotionMap = {
+          excellent: '/assets/happy.gif',
+          optimal: '/assets/happy.gif',
+          good: '/assets/happy.gif',
+          happy: '/assets/happy.gif',
+          moderate: '/assets/neutral.gif',
+          neutral: '/assets/neutral.gif',
+          warning: '/assets/neutral.gif',
+          caution: '/assets/neutral.gif',
+          sad: '/assets/sad.gif',
+          critical: '/assets/angry.gif',
+          angry: '/assets/angry.gif'
+        };
+
+        lilyAvatar.src = emotionMap[rawEmotion] || '/assets/neutral.gif';
       }
     }
 
@@ -101,13 +108,58 @@ async function renderHealthCard() {
       });
     }
 
+    // 💡 Render Spending Velocity Nudge Card when summary arrives
+    if (summary.nudge) {
+      renderNudgeUI(summary.nudge);
+    }
+
   } catch (error) {
     console.error("Error updating dashboard health card:", error);
   }
 }
 
 /* --------------------------------------------------------------------
-   2. Income vs Expenses Bar Chart (Dynamic from Transactions)
+   2. Fuzzy Spending Velocity Nudge Component
+   -------------------------------------------------------------------- */
+function renderNudgeUI(nudgeData) {
+  if (!nudgeData) return;
+
+  const badgeEl = document.getElementById("nudgeBadge");
+  const messageEl = document.getElementById("nudgeMessage");
+  const amountEl = document.getElementById("nudgeAmountText");
+  const fillEl = document.getElementById("nudgeBarFill");
+
+  // Update Badge
+  if (badgeEl) {
+    badgeEl.textContent = nudgeData.badgeText || "STABLE PACE";
+    badgeEl.className = `nudge-badge ${nudgeData.tier || 'MODERATE'}`;
+  }
+
+  // Update Text
+  if (messageEl) {
+    messageEl.innerHTML = nudgeData.message || "";
+  }
+
+  // Update Amount & Progress Bar
+  if (nudgeData.reductionNeeded <= 0) {
+    if (amountEl) amountEl.textContent = "On Track 🎉";
+    if (fillEl) {
+      fillEl.style.width = "100%";
+      fillEl.style.background = "linear-gradient(90deg, #22c55e, #4ade80)";
+    }
+  } else {
+    if (amountEl) amountEl.textContent = `Target Cut: ₱${nudgeData.reductionNeeded.toLocaleString()}`;
+    if (fillEl) {
+      fillEl.style.width = `${nudgeData.progressPercent}%`;
+      fillEl.style.background = nudgeData.tier === "CRITICAL" 
+        ? "linear-gradient(90deg, #f87171, #ef4444)" 
+        : "linear-gradient(90deg, #38bdf8, #818cf8)";
+    }
+  }
+}
+
+/* --------------------------------------------------------------------
+   3. Income vs Expenses Bar Chart (Dynamic from Transactions)
    -------------------------------------------------------------------- */
 async function renderMonthlyChart() {
   const chartEl = document.getElementById('barChart');
@@ -123,7 +175,6 @@ async function renderMonthlyChart() {
       return;
     }
 
-    // Group income and expenses by Month
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const grouped = {};
 
@@ -174,7 +225,7 @@ async function renderMonthlyChart() {
 }
 
 /* --------------------------------------------------------------------
-   3. Spending Breakdown (Dynamic from Expense Transactions)
+   4. Spending Breakdown (Dynamic from Expense Transactions)
    -------------------------------------------------------------------- */
 async function renderSpendingBreakdown() {
   const listEl = document.getElementById('breakdownList');
@@ -200,7 +251,6 @@ async function renderSpendingBreakdown() {
       return;
     }
 
-    // Group expenses by category
     const categoryTotals = {};
     expenses.forEach(tx => {
       const cat = tx.category || 'Other';
@@ -231,7 +281,7 @@ async function renderSpendingBreakdown() {
 }
 
 /* --------------------------------------------------------------------
-   4. Transactions Table (API Fetch + Delete)
+   5. Transactions Table (API Fetch + Delete)
    -------------------------------------------------------------------- */
 async function renderTransactions() {
   try {
@@ -268,7 +318,6 @@ async function renderTransactions() {
         </td>
       `;
 
-      // Attach Delete Handler
       const deleteBtn = row.querySelector(".tx-delete-btn");
       deleteBtn.addEventListener("click", () => deleteTransaction(tx.id));
 
@@ -292,7 +341,6 @@ async function deleteTransaction(id) {
   }
 }
 
-// Helper to refresh all component views when data changes
 function refreshAllViews() {
   renderTransactions();
   renderHealthCard();
@@ -301,7 +349,7 @@ function refreshAllViews() {
 }
 
 /* --------------------------------------------------------------------
-   5. Target Savings Rate Inline Editor (Connected to /api/settings)
+   6. Target Savings Rate Inline Editor (Connected to /api/settings)
    -------------------------------------------------------------------- */
 async function initTargetRateEditor() {
   const valueEl = document.getElementById('targetRateValue');
@@ -310,7 +358,6 @@ async function initTargetRateEditor() {
 
   if (!valueEl || !inputEl || !editBtn) return;
 
-  // Fetch saved rate on load
   try {
     const res = await fetch("/api/settings");
     if (res.ok) {
@@ -329,7 +376,6 @@ async function initTargetRateEditor() {
     inputEl.select();
   };
 
-  // Save edited rate to database
   const commitEdit = async () => {
     let next = parseInt(inputEl.value, 10);
     if (isNaN(next)) next = parseInt(valueEl.textContent, 10) || 0;
@@ -361,7 +407,7 @@ async function initTargetRateEditor() {
 }
 
 /* --------------------------------------------------------------------
-   6. Lily Quick Widget Interaction
+   7. Lily Quick Widget Interaction
    -------------------------------------------------------------------- */
 function initLilyWidget() {
   const toggleBtn = document.getElementById('lilyWidgetToggle');
@@ -382,7 +428,7 @@ function initLilyWidget() {
 }
 
 /* --------------------------------------------------------------------
-   7. Add Income / Expense Modal (API POST Handler)
+   8. Add Income / Expense Modal (API POST Handler)
    -------------------------------------------------------------------- */
 function initTransactionModal() {
   const overlay = document.getElementById('modalOverlay');
@@ -428,13 +474,10 @@ function initTransactionModal() {
     if (e.key === 'Escape' && !overlay.hasAttribute('hidden')) closeModal();
   });
 
-  // Handle Form Submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const formData = new FormData(form);
-    
-    // Extract date from form, fallback to today's date if empty
     const rawDate = formData.get("date") || formData.get("transaction_date");
     const formattedDate = rawDate ? new Date(rawDate).toISOString() : new Date().toISOString();
 

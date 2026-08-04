@@ -13,20 +13,21 @@ HELPERS
 */
 
 // Helper to map alert tiers directly to your /public/assets/ folder
-function getLilyGif(alertTier = "Info") {
-  switch ((alertTier || "INFO").toUpperCase()) {
-    case "OPTIMAL":
-      return "/assets/happy.gif";
-    case "STABLE":
-    case "INFO":
-      return "/assets/neutral.gif";
-    case "CAUTION":
-    case "WARNING":
-      return "/assets/sad.gif";
-    case "CRITICAL":
-      return "/assets/angry.gif";
+function getLilyGif(status) {
+  const upper = (status || '').toUpperCase();
+  switch (upper) {
+    case 'CRITICAL':
+      return '/assets/angry.gif';
+    case 'WARNING':
+      return '/assets/sad.gif';
+    case 'MODERATE':
+    case 'NEUTRAL':
+    case 'CAUTION':
+      return '/assets/neutral.gif'; // 👈 Explicit mapping here
+    case 'OPTIMAL':
+    case 'GOOD':
     default:
-      return "/assets/neutral.gif";
+      return '/assets/happy.gif';
   }
 }
 

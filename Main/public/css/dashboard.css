@@ -1,5 +1,17 @@
-:root { --header-h: 72px; }
+/* ==========================================================================
+   GLOBAL VARIABLES & RESET
+   ========================================================================== */
+:root {
+  --header-h: 72px;
+}
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   APP HEADER
+   ========================================================================== */
 .app-header {
   height: var(--header-h);
   display: flex;
@@ -13,7 +25,11 @@
   z-index: 20;
 }
 
-.brand { display: flex; align-items: center; gap: 12px; }
+.brand { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+}
 
 .brand-mark {
   width: 40px;
@@ -34,7 +50,11 @@
   image-rendering: pixelated;
 }
 
-.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-text { 
+  display: flex; 
+  flex-direction: column; 
+  line-height: 1.15; 
+}
 
 .brand-name {
   font-family: var(--font-display);
@@ -50,7 +70,10 @@
   letter-spacing: 0.01em;
 }
 
-.main-nav { display: flex; gap: 4px; }
+.main-nav { 
+  display: flex; 
+  gap: 4px; 
+}
 
 .nav-link {
   padding: 9px 16px;
@@ -61,13 +84,19 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.nav-link:hover { background: var(--bg-tint); color: var(--coral-600); }
+.nav-link:hover { 
+  background: var(--bg-tint); 
+  color: var(--coral-600); 
+}
 
 .nav-link.is-active {
   background: var(--coral-600);
   color: var(--bg-surface);
 }
 
+/* ==========================================================================
+   DASHBOARD LAYOUT & CARDS
+   ========================================================================== */
 .dashboard {
   max-width: 1180px;
   margin: 0 auto;
@@ -94,7 +123,10 @@
   flex-wrap: wrap;
 }
 
-.card-heading h2 { font-size: 1.1rem; font-weight: 700; }
+.card-heading h2 { 
+  font-size: 1.1rem; 
+  font-weight: 700; 
+}
 
 .card-subheading {
   margin: 2px 0 0;
@@ -103,6 +135,9 @@
   font-weight: 500;
 }
 
+/* ==========================================================================
+   LILY DASHBOARD CARD (TOP SUMMARY)
+   ========================================================================== */
 .lily-card {
   display: grid;
   grid-template-columns: 200px 1fr;
@@ -153,7 +188,11 @@
 
 .lily-mood strong { color: var(--coral-600); }
 
-.lily-card__score { display: flex; flex-direction: column; gap: 10px; }
+.lily-card__score { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+}
 
 .score-heading {
   display: flex;
@@ -183,17 +222,20 @@
   gap: 6px;
 }
 
- .score-value { 
-  /* Fallback to Space Mono / Monospace so digits always render sharply */
+.score-value { 
   font-family: var(--font-pixel), var(--font-mono), monospace; 
   font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.2rem); 
-  
-  /* Change color based on score severity or keep it bold dark/red for CRITICAL */
   color: var(--danger, #e53e3e); 
   font-weight: 700;
   line-height: 1; 
 }
-.score-max { font-size: 1.1rem; color: var(--ink-700); font-weight: 600; font-family: var(--font-display); }
+
+.score-max { 
+  font-size: 1.1rem; 
+  color: var(--ink-700); 
+  font-weight: 600; 
+  font-family: var(--font-display); 
+}
 
 .health-bar {
   width: 100%;
@@ -215,6 +257,9 @@
 
 .score-hint { margin: 0; font-size: 0.85rem; color: var(--ink-700); }
 
+/* ==========================================================================
+   SUMMARY METRICS GRID
+   ========================================================================== */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -283,6 +328,9 @@
 
 .icon-btn:hover { background: var(--bg-tint); }
 
+/* ==========================================================================
+   CHARTS & BREAKDOWNS (SPLIT GRID)
+   ========================================================================== */
 .split-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -392,48 +440,9 @@
   transition: width 0.6s ease;
 }
 
-.trend-body {
-  display: flex;
-  align-items: center;
-  gap: clamp(14px, 3vw, 28px);
-  flex-wrap: wrap;
-}
-
-.trend-figure {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.trend-figure__label { font-size: 0.8rem; color: var(--ink-700); font-weight: 600; }
-.trend-figure__value { font-size: 1.3rem; }
-
-.trend-arrow {
-  font-size: 1.6rem;
-  font-weight: 700;
-}
-
-.trend-arrow--down { color: var(--mint-700); }
-.trend-arrow--up { color: var(--danger); }
-
-.trend-indicator {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--mint-100);
-  color: var(--mint-700);
-  border-radius: var(--radius-md);
-  padding: 12px 18px;
-}
-
-.trend-indicator strong { display: block; font-size: 0.95rem; }
-.trend-indicator p { margin: 2px 0 0; font-size: 0.82rem; color: var(--mint-700); opacity: 0.85; }
-.trend-indicator span { font-size: 1.4rem; }
-
-.trend-indicator--bad { background: var(--danger-100); color: var(--danger); }
-.trend-indicator--bad p { color: var(--danger); }
-
+/* ==========================================================================
+   TRANSACTIONS & TABLES
+   ========================================================================== */
 .tx-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .btn {
@@ -512,40 +521,57 @@
 
 .row-actions button:hover { background: var(--bg-tint); }
 
+/* ==========================================================================
+   FIXED LILY FLOATING WIDGET (CORRECTED LAYOUT & BOUNDS)
+   ========================================================================== */
 .lily-widget {
   position: fixed;
-  right: clamp(14px, 3vw, 28px);
-  bottom: clamp(14px, 3vw, 28px);
+  right: clamp(16px, 3vw, 28px);
+  bottom: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
-  z-index: 30;
+  gap: 12px;
+  z-index: 9999; /* Higher z-index to avoid clipping behind components */
+  pointer-events: none; /* Prevents container from blocking page clicks */
+}
+
+/* Re-enable clicks for interactable elements inside widget */
+.lily-widget * {
+  pointer-events: auto;
 }
 
 .lily-widget__toggle {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  border: 3px solid var(--bg-surface);
-  background: var(--bg-tint);
-  box-shadow: var(--shadow-soft);
+  border: 3px solid var(--bg-surface, #ffffff);
+  background: var(--bg-surface, #ffffff);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  padding: 6px;
+  padding: 2px;
   overflow: hidden;
-  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+.lily-widget__toggle:hover {
+  transform: scale(1.08);
 }
 
 .lily-widget__thumb {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 50%;
   image-rendering: pixelated;
 }
 
 .lily-widget__body {
-  order: 1;
-  max-width: 240px;
+  max-width: 280px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -553,32 +579,50 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.lily-widget__body[hidden] { display: none; }
-
-.speech-bubble {
-  background: var(--bg-surface);
-  border: 1px solid var(--line-strong);
-  box-shadow: var(--shadow-soft);
-  border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
-  padding: 12px 16px;
-  font-size: 0.85rem;
+.lily-widget__body[hidden] {
+  display: none !important;
 }
 
-.speech-bubble p { margin: 0 0 4px; }
-.speech-bubble p:last-child { margin-bottom: 0; color: var(--ink-700); }
+.speech-bubble {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--line-strong, #cbd5e1);
+  box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.15);
+  border-radius: 16px 16px 4px 16px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  color: var(--ink-900, #0f172a);
+  position: relative;
+}
+
+.speech-bubble p { 
+  margin: 0 0 4px; 
+}
+
+.speech-bubble p:last-child { 
+  margin-bottom: 0; 
+  color: var(--ink-700, #475569); 
+}
 
 .lily-widget__link {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--coral-600);
-  background: var(--bg-surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-pill);
+  color: var(--coral-600, #ea580c);
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--line-strong, #cbd5e1);
+  border-radius: var(--radius-pill, 9999px);
   padding: 6px 14px;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
-.lily-widget__link:hover { background: var(--bg-tint); }
+.lily-widget__link:hover { 
+  background: var(--bg-tint, #fff7ed); 
+}
 
+/* ==========================================================================
+   MODAL OVERLAY
+   ========================================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -668,6 +712,140 @@
 
 [data-mono] { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.02em; }
 
+/* ==========================================================================
+   SPENDING VELOCITY NUDGE CARD
+   ========================================================================== */
+.nudge-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem;
+  color: #f8fafc;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  margin-top: 1rem;
+}
+
+.nudge-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.nudge-icon {
+  font-size: 1.2rem;
+}
+
+.nudge-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  flex-grow: 1;
+}
+
+.nudge-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.nudge-badge.OPTIMAL {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.nudge-badge.MODERATE {
+  background: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+}
+
+.nudge-badge.CRITICAL {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.nudge-message {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  margin-bottom: 0.9rem;
+}
+
+.nudge-progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.nudge-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.nudge-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #334155;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.nudge-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%);
+  border-radius: 4px;
+  transition: width 0.6s ease-in-out;
+}
+
+/* ==========================================================================
+   SKELETON LOADERS
+   ========================================================================== */
+.skeleton {
+  background: linear-gradient(90deg, #f0ede6 25%, #e6e2d8 50%, #f0ede6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: 6px;
+  color: transparent !important;
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+tr.skeleton-row td {
+  padding: 1rem;
+}
+
+.skeleton-text {
+  height: 16px;
+  width: 80%;
+  display: inline-block;
+}
+
+.skeleton-text--short {
+  width: 40%;
+}
+
+.skeleton-text--circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
 @media (max-width: 900px) {
   .split-grid { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
@@ -678,7 +856,6 @@
   .lily-card__score { align-items: center; }
   .score-heading { justify-content: center; }
   .health-bar { max-width: 100%; }
-  .trend-indicator { margin-left: 0; width: 100%; justify-content: center; }
 }
 
 @media (max-width: 560px) {

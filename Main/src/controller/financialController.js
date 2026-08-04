@@ -1,5 +1,6 @@
 const financialService = require("../services/financialService");
-const fuzzyEngine = require("../utils/fuzzyEngine"); // 👈 Import fuzzyEngine
+const fuzzyEngine = require("../utils/fuzzyEngine");
+const { generateFuzzyNudge } = require("../utils/fuzzyNudgeEngine"); // 👈 Import velocity nudge helper
 
 async function getFinancialSummary(req, res) {
     try {
@@ -7,6 +8,9 @@ async function getFinancialSummary(req, res) {
 
         // 1. Calculate expense ratio safely
         const rawRatio = summary.expenseRatio || summary.spendRatio || 0;
+        const totalIncome = summary.totalIncome ?? 0;
+        const totalExpenses = summary.totalExpense ?? summary.totalExpenses ?? 0;
+        const topCategory = summary.topCategory || "Shopping";
 
         // 2. Run Fuzzy Logic evaluation
         const { dominantTier, memberships } = fuzzyEngine.getDominantFuzzyTier(rawRatio);
@@ -23,12 +27,16 @@ async function getFinancialSummary(req, res) {
 
         const lilyState = moodMap[dominantTier] || moodMap.moderate;
 
-        // 4. Return summary with healthScore and normalized keys
+        // 4. Generate reverse-lookup velocity nudge
+        const nudgeData = generateFuzzyNudge(totalIncome, totalExpenses, topCategory);
+
+        // 5. Return summary with healthScore, lily state, and nudge payload
         res.status(200).json({
             ...summary,
-            totalExpenses: summary.totalExpense ?? summary.totalExpenses ?? 0, // 👈 Fix key naming (expenses vs expense)
-            healthScore: healthScore,                                           // 👈 Attach score (0 - 100)
-            lily: lilyState                                                    // 👈 Attach Lily's state object
+            totalExpenses,
+            healthScore,
+            lily: lilyState,
+            nudge: nudgeData // 👈 Attached for the dashboard nudge card!
         });
 
     } catch (error) {
@@ -52,14 +60,13 @@ async function handleLilyChat(req, res) {
     } catch (error) {
         console.error("Error processing Lily chat:", error);
         
-        // 💡 SEND THE EXACT ERROR MESSAGE BACK TO THE BROWSER FOR DEBUGGING
         return res.status(500).json({ 
             success: false, 
-            error: error.message,
-            stack: error.stack 
+            error: error.message
         });
     }
 }
+
 module.exports = {
     getFinancialSummary,
     handleLilyChat

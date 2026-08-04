@@ -42,6 +42,7 @@ body {
   text-align: center;
 }
 
+/* 💡 FIXED: Sidebar Circular Avatar Frame & Image Support */
 .chat-avatar-frame {
   width: 90px;
   height: 90px;
@@ -51,10 +52,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden; /* Clips square GIF corners */
 }
 
-.chat-avatar-face {
-  font-size: 2.8rem;
+/* Handles both emoji text and <img> tags inside header */
+.chat-avatar-face,
+.chat-avatar-frame img,
+#lilyFace {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover; /* Keeps aspect ratio clean */
+  display: block;
 }
 
 .chat-side-name {
@@ -100,6 +109,11 @@ body {
   transform: translateY(-1px);
 }
 
+.reset-chip {
+  border-color: var(--coral-500, #ff6b4a);
+  color: var(--coral-600, #e04f2e);
+}
+
 /* Chat Main Section & Window */
 .chat-main {
   display: flex;
@@ -116,6 +130,16 @@ body {
   flex-direction: column;
   gap: var(--sp-2, 12px);
   padding-bottom: var(--sp-2, 12px);
+  padding-right: 6px; /* Prevents scrollbar overlap */
+}
+
+/* Custom Clean Scrollbar for Chat Window */
+.chat-window::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-window::-webkit-scrollbar-thumb {
+  background: var(--line-strong, #e2d9cf);
+  border-radius: 10px;
 }
 
 /* Messages & Bubbles */
@@ -123,15 +147,17 @@ body {
   display: flex;
   gap: 0.6rem;
   align-items: flex-end;
-  max-width: 80%;
+  max-width: 85%;
 }
 
 .msg--lily { align-self: flex-start; }
 .msg--user { align-self: flex-end; flex-direction: row-reverse; }
 
+/* 💡 FIXED: Circular Chat Bubble Avatars */
 .msg-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  min-width: 2.2rem; /* Keeps size fixed in flex layout */
   border-radius: 50%;
   background: var(--bg-tint, #f5efe6);
   border: 1px solid var(--line-strong, #e2d9cf);
@@ -140,6 +166,14 @@ body {
   justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.msg-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .msg-bubble {
@@ -149,6 +183,13 @@ body {
   color: var(--ink-700, #3d332a);
   background: var(--bg-tint, #f5efe6);
   border: 1px solid var(--line-strong, #e2d9cf);
+  line-height: 1.5;
+}
+
+/* Bold Text inside bubbles */
+.msg-bubble strong {
+  font-weight: 700;
+  color: var(--ink-900, #2c221e);
 }
 
 .msg--lily .msg-bubble { border-bottom-left-radius: 4px; }
@@ -157,6 +198,10 @@ body {
   color: #ffffff;
   border: none;
   border-bottom-right-radius: 4px;
+}
+
+.msg--user .msg-bubble strong {
+  color: #ffffff;
 }
 
 /* 💡 Proof of Reasoning Accordion Box (Light Theme) */
@@ -204,6 +249,11 @@ body {
   text-transform: uppercase;
 }
 
-.score-status.status-good { background: #e6f4ea; color: #137333; }
-.score-status.status-warning { background: #fef7e0; color: #b06000; }
-.score-status.status-critical { background: #fce8e6; color: #c5221f; }
+.score-status.status-good,
+.score-status.status-optimal { background: #e6f4ea; color: #137333; }
+
+.score-status.status-warning,
+.score-status.status-caution { background: #fef7e0; color: #b06000; }
+
+.score-status.status-critical,
+.score-status.status-danger { background: #fce8e6; color: #c5221f; }
