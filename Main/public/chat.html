@@ -4,25 +4,59 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lily — Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/dashboard.css">
 <link rel="stylesheet" href="css/chat.css">
+<script>
+  // Apply saved theme before first paint to avoid a flash of the wrong theme.
+  (function () {
+    try {
+      var saved = localStorage.getItem('lily-theme');
+      var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
 
+<!-- ============ LOADING SCREEN ============ -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-screen__avatar">
+    <img src="assets/happy.gif" alt="" class="loading-screen__img">
+  </div>
+  <p class="loading-screen__brand">Lily</p>
+  <p class="loading-screen__status" id="loadingStatus">Getting Lily ready to chat…</p>
+  <div class="loading-screen__bar">
+    <div class="loading-screen__bar-fill"></div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
 <header class="app-header">
   <a href="landing.html" class="brand">
-    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-mark" aria-hidden="true">
+      <img src="assets/happy.gif" alt="" class="brand-mark__img">
+    </span>
     <span class="brand-text">
       <span class="brand-name">Lily</span>
       <span class="brand-tagline">Financial Health Coach</span>
     </span>
   </a>
 
-  <nav class="main-nav">
-    <a href="dashboard.html" class="nav-link">Dashboard</a>
-    <a href="chat.html" class="nav-link is-active">Chat</a>
-  </nav>
+  <div class="header-right">
+    <nav class="main-nav" aria-label="Primary">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="chat.html" class="nav-link is-active">Chat</a>
+    </nav>
+
+    <button class="theme-toggle" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode">
+      <span class="theme-toggle__thumb" id="themeToggleIcon" aria-hidden="true">☀️</span>
+    </button>
+  </div>
 </header>
 
 <main class="chat-shell">
@@ -70,6 +104,8 @@
 
 </main>
 
+<script src="js/theme.js"></script>
+<script src="js/loading.js"></script>
 <script src="js/chat.js"></script>
 </body>
 </html>

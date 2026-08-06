@@ -270,11 +270,10 @@
   border-radius: var(--radius-pill);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background: var(--bg-tint-strong);
-  color: var(--ink-700);
+  background: var(--mint-100);
+  color: var(--mint-700);
 }
 
-.score-status.status-good { background: var(--mint-100); color: var(--mint-700); }
 .score-status.status-warn { background: rgba(232, 169, 59, 0.16); color: var(--gold-700); }
 .score-status.status-bad { background: var(--danger-100); color: var(--danger); }
 
