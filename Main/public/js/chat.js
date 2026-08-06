@@ -1,11 +1,22 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Runs `fn` right away if the DOM is already parsed (true when the router
+// injects this script after navigation), or waits for DOMContentLoaded if
+// the page was loaded normally and is still parsing.
+function whenReady(fn) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn, { once: true });
+  } else {
+    fn();
+  }
+}
+
+whenReady(() => {
 
   const chatWindow = document.getElementById('chatWindow');
   const typingIndicator = document.getElementById('typingIndicator');
   let lilyFace = document.getElementById('lilyFace'); // Marked 'let' to allow element replacement
   const chatReset = document.getElementById('chatReset');
   const suggestedList = document.getElementById('suggestedList');
-  const statusBadge = document.getElementById('lilyMoodBadge'); 
+  const statusBadge = document.getElementById('lilyMoodBadge');
 
   function scrollToBottom() {
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -57,11 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
       proofBox.className = 'proof-box';
       proofBox.open = true; // Open by default for thesis/defense demo
 
-      const reasoningText = proofData.reasoningText 
+      const reasoningText = proofData.reasoningText
         || `Calculated Health Score of ${proofData.healthScore ?? 'N/A'}/100 based on active fuzzy set boundaries.`;
 
       // Safely read fuzzy membership values if passed
-      const membershipsText = proofData.memberships 
+      const membershipsText = proofData.memberships
         ? ` (Low: ${proofData.memberships.low ?? 0}, Med: ${proofData.memberships.medium ?? 0}, High: ${proofData.memberships.high ?? 0})`
         : '';
 
@@ -141,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const emoji = payload.avatarEmoji || responseObj.emoji || '😺';
       const alertTier = responseObj.alertTier || payload.alertTier || 'Optimal';
       const proof = payload.proofOfReasoning || responseObj.proofOfReasoning;
-      
+
       // Look for suggested questions in root or response payload
       const questions = payload.suggestedQuestions || payload.nestedQuestions || responseObj.nestedQuestions;
       const isTerminal = payload.isTerminal ?? responseObj.isTerminal ?? false;
@@ -167,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (statusBadge) {
         const tierClass = alertTier.toLowerCase();
         statusBadge.className = `score-status status-${tierClass}`;
-        
+
         // Displays status e.g. "Optimal (Score: 84)"
         if (proof && proof.healthScore !== undefined) {
           statusBadge.textContent = `${alertTier} (Score: ${proof.healthScore})`;
@@ -209,11 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggested-chip';
-        
+
         // Read text prop, fallback to label, fallback to string
         const chipText = q.text || q.label || (typeof q === 'string' ? q : 'Question');
         chip.textContent = chipText;
-        
+
         chip.addEventListener('click', () => {
           sendIntent(q.intent, chipText);
         });
@@ -239,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Start chat on DOM ready
+  // Start chat immediately — the DOM is already in place either way
   initChat();
 
 });
