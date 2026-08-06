@@ -40,10 +40,10 @@ app.listen(PORT, () => {
 // Database Connection Test
 db.query("SELECT NOW()")
     .then(() => {
-        console.log("✅ Connected to Supabase PostgreSQL");
+        console.log(" Connected to Supabase PostgreSQL");
     })
     .catch(err => {
-        console.error("❌ Database Error:", err.message);
+        console.error(" Database Error:", err.message);
     });
 
 // Graceful Shutdown

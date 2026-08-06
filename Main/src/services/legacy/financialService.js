@@ -224,11 +224,7 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
 
   let dynamicProofOverride = null;
 
-  /*
-  =====================================================
-  DYNAMIC INTENT INJECTIONS
-  =====================================================
-  */
+  
 
   // 1. Highest Spending / Category Breakdown Audit
   if (intent === "SHOW_BREAKDOWN" || intent === "CHECK_HIGHEST_SPENDING" || intent === "SHOW_CATEGORIES") {

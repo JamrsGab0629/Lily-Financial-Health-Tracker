@@ -1,22 +1,26 @@
-const financialService = require("../services/financialService");
+// src/controller/financialController.js
+const { getFinancialSummary: fetchFinancialSummary } = require("../services/financial/summaryService");
+const { processLilyChat } = require("../services/financial/intentEngine");
+
 const fuzzyEngine = require("../utils/fuzzyEngine");
 const { generateFuzzyNudge } = require("../utils/fuzzyNudgeEngine"); // 👈 Import velocity nudge helper
 
 async function getFinancialSummary(req, res) {
     try {
-        const summary = await financialService.getFinancialSummary();
+        // 1. Call the newly modularized service function
+        const summary = await fetchFinancialSummary();
 
-        // 1. Calculate expense ratio safely
+        // 2. Calculate expense ratio safely
         const rawRatio = summary.expenseRatio || summary.spendRatio || 0;
         const totalIncome = summary.totalIncome ?? 0;
         const totalExpenses = summary.totalExpense ?? summary.totalExpenses ?? 0;
         const topCategory = summary.topCategory || "Shopping";
 
-        // 2. Run Fuzzy Logic evaluation
+        // 3. Run Fuzzy Logic evaluation
         const { dominantTier, memberships } = fuzzyEngine.getDominantFuzzyTier(rawRatio);
         const healthScore = fuzzyEngine.calculateHealthScore(memberships);
 
-        // 3. Map Lily's status & emotion based on dominant tier
+        // 4. Map Lily's status & emotion based on dominant tier
         const moodMap = {
             veryLow:  { status: "Excellent", emotion: "very_happy", emoji: "😸", message: "Your finances look incredible!" },
             low:      { status: "Good",      emotion: "happy",      emoji: "😺", message: "Your spending is well under control!" },
@@ -27,10 +31,10 @@ async function getFinancialSummary(req, res) {
 
         const lilyState = moodMap[dominantTier] || moodMap.moderate;
 
-        // 4. Generate reverse-lookup velocity nudge
+        // 5. Generate reverse-lookup velocity nudge
         const nudgeData = generateFuzzyNudge(totalIncome, totalExpenses, topCategory);
 
-        // 5. Return summary with healthScore, lily state, and nudge payload
+        // 6. Return summary with healthScore, lily state, and nudge payload
         res.status(200).json({
             ...summary,
             totalExpenses,
@@ -51,7 +55,9 @@ async function getFinancialSummary(req, res) {
 async function handleLilyChat(req, res) {
     try {
         const { intent } = req.body;
-        const result = await financialService.processLilyChat(intent);
+        
+        // Call the new Intent Engine process function directly
+        const result = await processLilyChat(intent);
         
         return res.status(200).json({
             success: true,
