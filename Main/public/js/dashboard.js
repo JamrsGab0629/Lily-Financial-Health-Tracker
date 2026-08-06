@@ -113,8 +113,66 @@ async function renderHealthCard() {
       renderNudgeUI(summary.nudge);
     }
 
+    // 📈 Render Daily Burn Acceleration Trend Card
+    if (summary.burnRateMetrics || summary.lastMonthExpense !== undefined) {
+      renderSpendingTrendUI(summary);
+    }
+
   } catch (error) {
     console.error("Error updating dashboard health card:", error);
+  }
+}
+
+/* --------------------------------------------------------------------
+   1b. Daily Burn Rate & Acceleration UI Component
+   -------------------------------------------------------------------- */
+function renderSpendingTrendUI(summary) {
+  const prevEl = document.getElementById("trendPrevMonth");
+  const currEl = document.getElementById("trendCurrMonth");
+  const arrowEl = document.getElementById("trendArrow");
+  const indicatorEl = document.getElementById("trendIndicator");
+  const iconEl = document.getElementById("trendIcon");
+  const badgeEl = document.getElementById("trendBadge");
+  const accelEl = document.getElementById("trendAccelText");
+  const paceEl = document.getElementById("trendPaceText");
+
+  const metrics = summary.burnRateMetrics || {};
+  const prevSpend = summary.lastMonthExpense || 0;
+  const currSpend = summary.totalExpense ?? summary.totalExpenses ?? 0;
+  
+  const accel = metrics.accelerationPct || 0;
+  const isAccelerating = metrics.status === "ACCELERATING";
+  const sign = accel >= 0 ? "+" : "";
+
+  // Update Monthly Balances
+  if (prevEl) prevEl.textContent = `₱${Number(prevSpend).toLocaleString()}`;
+  if (currEl) currEl.textContent = `₱${Number(currSpend).toLocaleString()}`;
+
+  // Update Visual Indicators
+  if (arrowEl) {
+    arrowEl.textContent = isAccelerating ? "↑" : "↓";
+    arrowEl.className = `trend-arrow ${isAccelerating ? "trend-arrow--up" : "trend-arrow--down"}`;
+  }
+
+  if (indicatorEl) {
+    indicatorEl.className = `trend-indicator ${isAccelerating ? "trend-indicator--bad" : "trend-indicator--good"}`;
+  }
+
+  if (iconEl) {
+    iconEl.textContent = isAccelerating ? "📈" : "📉";
+  }
+
+  // Update Status Text
+  if (badgeEl) {
+    badgeEl.textContent = isAccelerating ? "Accelerating" : "Decelerating";
+  }
+
+  if (accelEl) {
+    accelEl.textContent = `Daily Burn Rate: ${sign}${accel}%`;
+  }
+
+  if (paceEl) {
+    paceEl.textContent = `Current Pace: ₱${Number(metrics.currentDailyPace || 0).toLocaleString()}/day`;
   }
 }
 

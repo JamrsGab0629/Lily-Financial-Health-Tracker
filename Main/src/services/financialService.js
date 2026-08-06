@@ -1,16 +1,92 @@
 // services/financialService.js
 const transactionModel = require("../models/transactionModel");
 
-// 1. Import Fuzzy Engine, Decision Tree, and Multi-Tiered Questions models
-const { getDominantFuzzyTier, calculateHealthScore } = require("../utils/fuzzyEngine");
+// 1. Import Fuzzy Engine, Decision Tree, Multi-Tiered Questions models, and Metrics Calculator
+const { 
+  getDominantFuzzyTier, 
+  calculateHealthScore, 
+  evaluateSavingsFuzzyRules 
+} = require("../utils/fuzzyEngine");
 const { DECISION_TREE } = require("../models/decisionTreeModel");
 const { getQuestionsForMood, getNestedFuzzyQuestions } = require("../models/questionsModel");
 
+// Import utility for pace and acceleration calculations
+const { calculateBurnRateAcceleration } = require("../utils/metricsCalculator");
+
 /*
 =====================================
-HELPERS
+HELPERS & CATEGORY CLASSIFICATION
 =====================================
 */
+
+/**
+ * List of known discretionary / want categories (case-insensitive)
+ */
+const WANT_CATEGORIES = [
+  "entertainment",
+  "wants",
+  "leisure",
+  "dining out",
+  "shopping",
+  "hobbies",
+  "subscriptions",
+  "vacation",
+  "games"
+];
+
+/**
+ * Categorizes category rows dynamically into Needs and Wants
+ */
+function classifyNeedsAndWants(categoryRows = []) {
+  let computedNeeds = 0;
+  let computedWants = 0;
+
+  categoryRows.forEach((row) => {
+    const catName = (row.category || "Uncategorized").trim().toLowerCase();
+    const amt = parseFloat(row.total_amount) || 0;
+
+    if (WANT_CATEGORIES.includes(catName)) {
+      computedWants += amt;
+    } else {
+      computedNeeds += amt;
+    }
+  });
+
+  return { computedNeeds, computedWants };
+}
+
+// Helper to get visual reaction headers based on Mamdani tier
+function getFuzzyReactionUI(tier) {
+  const upper = (tier || '').toUpperCase();
+  switch (upper) {
+    case "CRITICAL":
+      return {
+        reaction: "😱 OH NO!",
+        headline: "🚨 SEVERE FINANCIAL RISK!",
+        banner: "Emergency action needed to protect your budget!"
+      };
+    case "CAUTION":
+    case "WARNING":
+      return {
+        reaction: "⚠️ HEADS UP!",
+        headline: "⚠️ BUDGET IN CAUTION ZONE",
+        banner: "Your budget is slipping out of balance. Let's keep a close eye on this!"
+      };
+    case "OPTIMAL":
+    case "GOOD":
+      return {
+        reaction: "🎉 AWESOME!",
+        headline: "🎯 PERFECT BALANCE!",
+        banner: "You are completely crushing your financial goals!"
+      };
+    default:
+      return {
+        reaction: "📊 AUDIT",
+        headline: "FINANCIAL STATUS AUDIT",
+        banner: "Analyzing your health metrics..."
+      };
+  }
+}
 
 // Helper to map alert tiers directly to your /public/assets/ folder
 function getLilyGif(status) {
@@ -23,7 +99,7 @@ function getLilyGif(status) {
     case 'MODERATE':
     case 'NEUTRAL':
     case 'CAUTION':
-      return '/assets/neutral.gif'; // 👈 Explicit mapping here
+      return '/assets/neutral.gif';
     case 'OPTIMAL':
     case 'GOOD':
     default:
@@ -38,46 +114,70 @@ CALCULATION & BUSINESS LOGIC
 */
 
 async function getFinancialSummary() {
-  // Fetch totals, breakdown, AND dynamic savings target rate
-  const [totals, categoryRows, targetRate] = await Promise.all([
+  const [totals, categoryRows, targetRate, comparison] = await Promise.all([
     transactionModel.getTotalsFromDB(),
     transactionModel.getCategoryBreakdownFromDB(),
-    transactionModel.getTargetSavingsRate() // Fetch from settings
+    transactionModel.getTargetSavingsRate(),
+    transactionModel.getMonthlyComparisonFromDB().catch(() => ({ current_month_expense: 0, last_month_expense: 0 }))
   ]);
 
   const totalIncome = parseFloat(totals.total_income) || 0;
   const totalExpense = parseFloat(totals.total_expense) || 0;
+  const lastMonthExpense = parseFloat(comparison.last_month_expense) || 0;
   
-  // Balance / Savings
-  const balance = Math.max(0, totalIncome - totalExpense);
-
-  // Savings Percentage
-  const savingsPercentage = totalIncome > 0 
-    ? Math.round((balance / totalIncome) * 100) 
-    : 0;
-
-  // Expense Ratio
-  let expenseRatio = 0;
-  if (totalIncome > 0) {
-    expenseRatio = (totalExpense / totalIncome) * 100;
-  } else if (totalExpense > 0) {
-    expenseRatio = 100;
-  }
-
-  const categoryBreakdown = categoryRows.map(row => ({
+  const categoryBreakdown = (categoryRows || []).map(row => ({
     category: row.category || "Uncategorized",
     amount: parseFloat(row.total_amount) || 0
   }));
 
+  // Dynamically compute Needs vs. Wants based on category breakdown
+  let computedNeeds = 0;
+  let computedWants = 0;
+
+  categoryBreakdown.forEach(item => {
+    const catName = item.category.trim().toLowerCase();
+    const isWant = WANT_CATEGORIES.some(want => catName.includes(want));
+    if (isWant) {
+      computedWants += item.amount;
+    } else {
+      computedNeeds += item.amount;
+    }
+  });
+
+  const totalNeedsAmount = computedNeeds;
+  const totalWantsAmount = computedWants;
+
+  const balance = Math.max(0, totalIncome - totalExpense);
+
+  const savingsPercentage = totalIncome > 0 
+    ? Math.round((balance / totalIncome) * 100) 
+    : 0;
+
+  let expenseRatio = 0;
+  if (totalIncome > 0) {
+    expenseRatio = (totalExpense / totalIncome) * 100;
+  } else if (totalExpense > 0) {
+    expenseRatio = (totalExpense / (totalIncome || 1)) * 100;
+  }
+
+  const burnRateMetrics = calculateBurnRateAcceleration(totalExpense, lastMonthExpense);
+  const projectedMonthlyExpense = burnRateMetrics.currentDailyPace * 30 || 1;
+  const emergencyBufferMonths = parseFloat((balance / projectedMonthlyExpense).toFixed(1));
+
   return {
     totalIncome,
     totalExpense,
+    totalNeedsAmount,
+    totalWantsAmount,
+    lastMonthExpense,
     balance,
     savingsPercentage,
     netSavings: balance,
     expenseRatio: parseFloat(expenseRatio.toFixed(2)),
-    targetSavingsRate: targetRate || 20, // Dynamic target rate
-    categoryBreakdown
+    targetSavingsRate: targetRate || 20,
+    categoryBreakdown,
+    burnRateMetrics,
+    emergencyBufferMonths
   };
 }
 
@@ -90,23 +190,27 @@ FUZZY & FDT INTERACTION HANDLER
 async function processLilyChat(intent = "CHECK_HEALTH") {
   const summary = await getFinancialSummary();
   const spendRatio = summary.expenseRatio || 0;
+  const buffer = summary.emergencyBufferMonths || 0;
+  const acceleration = summary.burnRateMetrics.accelerationPct || 0;
+  const dailyPace = summary.burnRateMetrics.currentDailyPace || 0;
+  const targetSavingsRate = summary.targetSavingsRate || 20;
+  const currentSavingsPct = summary.savingsPercentage || 0;
 
-  // 1. Evaluate Fuzzy Logic
+  // 1. Evaluate Single-Input Fuzzy Logic (Expense Ratio)
   const { dominantTier, memberships } = getDominantFuzzyTier(spendRatio);
   const healthScore = calculateHealthScore ? calculateHealthScore(memberships) : Math.max(0, 100 - spendRatio);
   
-  // Normalize memberships safely across moderate/medium/med naming schemes
-  const normLow = memberships.low ?? memberships.veryLow ?? 0;
+  const normVeryLow = memberships.veryLow ?? 0;
+  const normLow = memberships.low ?? 0;
   const normMed = memberships.medium ?? memberships.med ?? memberships.moderate ?? 0;
   const normHigh = memberships.high ?? memberships.veryHigh ?? 0;
 
-  // 2. Retrieve root questions (3 Core Baseline Anchor Questions + 1 Dynamic Fuzzy Question evaluated via Vector Dot Product)
+  // 2. Retrieve root questions
   let suggestedQuestions = getQuestionsForMood(dominantTier, memberships);
 
   // 3. Fetch default node from Decision Tree
   const rawNode = DECISION_TREE[intent]?.[dominantTier] || DECISION_TREE[intent]?.default;
 
-  // Fallback structure ensuring custom dynamic intents execute properly
   const node = rawNode ? JSON.parse(JSON.stringify(rawNode)) : {
     response: {
       alertTier: "Stable",
@@ -118,9 +222,11 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     nestedQuestions: []
   };
 
+  let dynamicProofOverride = null;
+
   /*
   =====================================================
-  DYNAMIC INTENT INJECTIONS WITH FUZZY EXPLANATIONS & NESTING
+  DYNAMIC INTENT INJECTIONS
   =====================================================
   */
 
@@ -140,88 +246,162 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     }
   }
 
-  // 2. Needs vs. Wants Audit (Spending Wisdom Check)
-  if (intent === "CHECK_NEEDS_VS_WANTS" || intent === "SPENDING_WISDOM") {
-    const categories = summary.categoryBreakdown || [];
-    const essentialCategories = ["food", "transportation", "bills", "utilities"];
+  // 2. Needs vs. Wants Audit
+ // 2. Needs vs. Wants Audit
+  if (intent === "CHECK_NEEDS_VS_WANTS") {
+    const needsAmount = summary.totalNeedsAmount || 0;
+    const wantsAmount = summary.totalWantsAmount || 0;
+    const totalSpent = summary.totalExpense || (needsAmount + wantsAmount);
+    const combinedSpent = needsAmount + wantsAmount;
 
-    let totalNeeds = 0;
-    let totalWants = 0;
+    // Use combinedSpent (or fallback to totalSpent) to keep percentages summing cleanly to 100%
+    const baselineSpent = combinedSpent > 0 ? combinedSpent : (totalSpent > 0 ? totalSpent : 1);
 
-    categories.forEach(item => {
-      const name = item.category ? item.category.toLowerCase() : "";
-      if (essentialCategories.includes(name)) {
-        totalNeeds += item.amount;
-      } else if (name !== "income") {
-        totalWants += item.amount;
-      }
-    });
+    const needsPct = Math.round((needsAmount / baselineSpent) * 100);
+    const wantsPct = Math.round((wantsAmount / baselineSpent) * 100);
 
-    const totalSpent = summary.totalExpense || (totalNeeds + totalWants);
-    const needsRatio = totalSpent > 0 ? Math.round((totalNeeds / totalSpent) * 100) : 0;
-    const wantsRatio = totalSpent > 0 ? Math.round((totalWants / totalSpent) * 100) : 0;
+    const wantsRatio = baselineSpent > 0 ? wantsAmount / baselineSpent : 0;
+    const normalizedExpenseRatio = spendRatio / 100;
+    const savingsGapRatio = Math.max(0, (targetSavingsRate - currentSavingsPct) / 100);
+    const burnAcceleration = summary.burnRateMetrics.accelerationPct ? summary.burnRateMetrics.accelerationPct / 100 : 1.0;
 
-    if (totalNeeds >= totalWants) {
-      node.response.message = `⚖️ **Spending Wisdom Analysis:**\n\n✅ **Great Priorities!** You are allocating **${needsRatio}%** (₱${totalNeeds.toLocaleString()}) to essential Needs versus **${wantsRatio}%** (₱${totalWants.toLocaleString()}) to Wants.\n\nYour spending balance is looking solid! 🌟`;
-      node.response.alertTier = "Optimal";
-    } else {
-      node.response.message = `⚠️ **Spending Wisdom Warning:**\n\n👀 You are spending more on non-essentials/Wants (**${wantsRatio}%** | ₱${totalWants.toLocaleString()}) than essential Needs (**${needsRatio}%** | ₱${totalNeeds.toLocaleString()}).\n\nTry reining in discretionary purchases this week! 💸`;
+    // Run 4-Input Fuzzy Engine
+    const fuzzyResult = evaluateSavingsFuzzyRules(
+      normalizedExpenseRatio,
+      savingsGapRatio,
+      burnAcceleration,
+      wantsRatio
+    );
+
+    const ui = getFuzzyReactionUI(fuzzyResult.tier);
+
+    if (fuzzyResult.tier === "CRITICAL" || spendRatio > 100) {
+      const criticalUI = getFuzzyReactionUI("CRITICAL");
+      node.response.message = `${criticalUI.reaction} **${criticalUI.headline}**\n\n` +
+        `🚨 **Severe Overspending Detected!** Your total expense ratio is **${spendRatio.toFixed(1)}%**!\n\n` +
+        `• **Wants (Discretionary):** **${wantsPct}%** (₱${wantsAmount.toLocaleString()})\n` +
+        `• **Needs (Essential):** **${needsPct}%** (₱${needsAmount.toLocaleString()})\n\n` +
+        `Your discretionary spending on non-essentials is consuming your entire budget. Freeze discretionary purchases immediately! 💔`;
+      node.response.alertTier = "Critical";
+    } else if (wantsPct >= 60) {
+      node.response.message = `${ui.reaction} **${ui.headline}**\n\n` +
+        `You are allocating **${wantsPct}%** (₱${wantsAmount.toLocaleString()}) to non-essentials/Wants versus **${needsPct}%** (₱${needsAmount.toLocaleString()}) to Needs.\n\n` +
+        `💡 **Lily's Tip:** Reining in non-essential purchases will quickly rebuild your savings cushion! 💸`;
       node.response.alertTier = "Warning";
+    } else {
+      node.response.message = `${ui.reaction} **${ui.headline}**\n\n` +
+        `✅ **Great Priorities!** You are allocating **${needsPct}%** (₱${needsAmount.toLocaleString()}) to essential Needs versus **${wantsPct}%** (₱${wantsAmount.toLocaleString()}) to Wants.\n\n` +
+        `Your spending balance and cushion look solid! 🌟`;
+      node.response.alertTier = "Optimal";
     }
-  }
 
-  // 3. Savings Percentage Goal Check
+    let gapSet = savingsGapRatio <= 0 ? 'ONTRACK' : (savingsGapRatio >= 0.30 ? 'LARGEGAP' : 'MINORGAP');
+    let wantsSet = wantsRatio >= 0.70 ? 'DISCRETIONARYHEAVY' : (wantsRatio <= 0.30 ? 'ESSENTIALHEAVY' : 'BALANCED');
+    let burnSet = burnAcceleration >= 2.0 ? 'ACCELERATING' : (burnAcceleration > 1.0 ? 'ELEVATED' : 'NORMAL');
+
+    dynamicProofOverride = {
+      crispInput: `Ratio = ${spendRatio.toFixed(2)}% | Buffer = ${buffer} mos | Accel = ${acceleration}% (₱${dailyPace.toFixed(2)}/day)`,
+      dominantSet: `EXPENSE: ${dominantTier.toUpperCase()} | GAP: ${gapSet} | PACE: ${burnSet} | WANTS: ${wantsSet}`,
+      activeRule: fuzzyResult.activeRule,
+      healthScore: Math.round(healthScore),
+      memberships: fuzzyResult.memberships || memberships
+    };
+  }
+  // 3. Multi-Input Savings Goal Check
   if (intent === "CHECK_SAVINGS_GOAL" || intent === "SET_GOAL") {
-    const currentSavingsPct = summary.savingsPercentage || 0;
     const netSavings = summary.netSavings || 0;
-    const targetSavingsRate = summary.targetSavingsRate || 20;
+    const normalizedExpenseRatio = spendRatio / 100;
     
+    const rawGapPct = targetSavingsRate - currentSavingsPct;
+    const savingsGapRatio = rawGapPct / 100;
+    const effectiveGapRatio = Math.max(0, savingsGapRatio);
+    
+    const wantsRatio = summary.totalWantsAmount ? (summary.totalWantsAmount / (summary.totalExpense || 1)) : 0.5;
+
+    const fuzzySavingsResult = evaluateSavingsFuzzyRules(
+      normalizedExpenseRatio, 
+      effectiveGapRatio, 
+      acceleration / 100, 
+      wantsRatio
+    );
+
     if (currentSavingsPct >= targetSavingsRate) {
-      node.response.message = `🎯 **Goal Reached!** You are currently saving **${currentSavingsPct}%** of your income (₱${netSavings.toLocaleString()}), beating your target of ${targetSavingsRate}%! Keep this momentum going! 🎉`;
+      const surplus = currentSavingsPct - targetSavingsRate;
+      const ui = getFuzzyReactionUI("OPTIMAL");
+
+      if (surplus > 0) {
+        node.response.message = `${ui.reaction} **${ui.headline}**\n\nYou are saving an incredible **${currentSavingsPct}%** of your income (₱${netSavings.toLocaleString()})—beating your **${targetSavingsRate}%** target by **${surplus}%**! Keep up this amazing momentum! 🚀`;
+      } else {
+        node.response.message = `${ui.reaction} **${ui.headline}**\n\nYou hit your savings target exactly at **${currentSavingsPct}%** (₱${netSavings.toLocaleString()})! Fantastic discipline! 🎉`;
+      }
       node.response.alertTier = "Optimal";
+
+    } else if (fuzzySavingsResult.tier === "CRITICAL" || savingsGapRatio >= 0.30) {
+      const ui = getFuzzyReactionUI("CRITICAL");
+      node.response.message = `${ui.reaction} **${ui.headline}**\n\nYou are saving only **${currentSavingsPct}%** (₱${netSavings.toLocaleString()}) against your **${targetSavingsRate}%** goal. You're falling short by **${rawGapPct}%**! Freeze non-essentials immediately to turn this around. 💔`;
+      node.response.alertTier = "Critical";
+
     } else {
-      const gap = targetSavingsRate - currentSavingsPct;
-      node.response.message = `⚠️ **Goal Pending:** You are currently saving **${currentSavingsPct}%** of your income (₱${netSavings.toLocaleString()}). You are **${gap}%** away from hitting your target of ${targetSavingsRate}%.`;
+      const ui = getFuzzyReactionUI("CAUTION");
+      node.response.message = `${ui.reaction} **${ui.headline}**\n\nYou are saving **${currentSavingsPct}%** of your income (₱${netSavings.toLocaleString()}), putting you **${rawGapPct}%** away from your target of **${targetSavingsRate}%**. Trim a little non-essential spend to cross the goal line! 🌟`;
       node.response.alertTier = "Warning";
     }
+
+    let gapSet = savingsGapRatio <= 0 ? 'ONTRACK' : (savingsGapRatio >= 0.30 ? 'LARGEGAP' : 'MINORGAP');
+    let wantsSet = wantsRatio >= 0.70 ? 'DISCRETIONARYHEAVY' : (wantsRatio <= 0.30 ? 'ESSENTIALHEAVY' : 'BALANCED');
+    let burnSet = acceleration >= 100 ? 'ACCELERATING' : (acceleration > 0 ? 'ELEVATED' : 'NORMAL');
+
+    dynamicProofOverride = {
+      crispInput: `Ratio = ${spendRatio.toFixed(2)}% | Gap = ${(savingsGapRatio * 100).toFixed(1)}% | Accel = ${acceleration}% | Wants = ${(wantsRatio * 100).toFixed(1)}%`,
+      dominantSet: `EXPENSE: ${dominantTier.toUpperCase()} | GAP: ${gapSet} | PACE: ${burnSet} | WANTS: ${wantsSet}`,
+      activeRule: currentSavingsPct >= targetSavingsRate 
+        ? "IF expense_ratio IS low AND savings_gap IS onTrack THEN status IS Optimal"
+        : fuzzySavingsResult.activeRule,
+      healthScore: Math.round(healthScore),
+      memberships: fuzzySavingsResult.memberships || memberships
+    };
   }
 
-  // 4. Emergency Freeze Budget (HIGH TIER LEVEL 2 DYNAMIC)
+  // 4. Emergency Freeze Budget
   if (intent === "FREEZE_BUDGET") {
     const highMembership = (normHigh * 100).toFixed(0);
     
     node.response.message = `🚨 **Emergency Freeze Budget Activated!**\n\n🧠 **Fuzzy Reasoning:** Your spending shows a **${highMembership}% membership in the HIGH Risk Set** (Expense Ratio: ${spendRatio.toFixed(1)}%).\n\n📌 **Lily's Action Plan:** Limit spending exclusively to essential Needs for the next 7 days until your Expense Ratio drops back into the SAFE set!`;
     node.response.alertTier = "Critical";
 
-    // 🔀 Override chips with Level 3 Nested Fuzzy Sub-Questions
     suggestedQuestions = getNestedFuzzyQuestions("FREEZE_BUDGET", memberships);
     node.isTerminal = false; 
   }
 
-  // 5. Cut Discretionary / Non-Essentials (HIGH TIER LEVEL 3 NESTED)
+  // 5. Cut Discretionary
   if (intent === "CUT_DISCRETIONARY") {
     node.response.message = `✂️ **Discretionary Spending Cut Plan:**\n\nBased on your logged expenses, cutting non-essential purchases by 50% this week will help save money and lower your expense ratio!`;
     node.response.alertTier = "Warning";
     suggestedQuestions = [];
-    node.isTerminal = true; // Leaf node reached
+    node.isTerminal = true;
   }
 
-  // 6. Check Runway (HIGH TIER LEVEL 3 NESTED)
+  // 6. Check Runway
   if (intent === "CHECK_RUNWAY") {
-    const dailySpend = summary.totalExpense > 0 ? (summary.totalExpense / 30) : 0;
-    const runwayDays = dailySpend > 0 ? Math.floor(summary.balance / dailySpend) : "Unlimited";
+    const runwayDays = dailyPace > 0 ? Math.floor(summary.balance / dailyPace) : "Unlimited";
 
-    node.response.message = `⏳ **Financial Runway Check:**\n\nAt your current average daily burn rate (~₱${Math.round(dailySpend).toLocaleString()}/day), your remaining balance of **₱${summary.balance.toLocaleString()}** will last approximately **${runwayDays} days**.`;
-    node.response.alertTier = "Warning";
+    node.response.message = `⏳ **Financial Runway & Pace Check:**\n\n` +
+      `• **Daily Pace:** ₱${dailyPace.toLocaleString()}/day\n` +
+      `• **Emergency Runway:** **${buffer} months** (~${runwayDays} days)\n` +
+      `• **Remaining Balance:** ₱${summary.balance.toLocaleString()}\n\n` +
+      (buffer < 1 
+        ? `⚠️ **Lily's Alert:** Your runway is under 1 month! Slow down your daily burn rate to avoid depleting your balance.`
+        : `🛡️ **Lily's Insight:** Your runway is in a safe condition.`);
+    
+    node.response.alertTier = buffer < 1 ? "Critical" : "Optimal";
     suggestedQuestions = [];
-    node.isTerminal = true; // Leaf node reached
+    node.isTerminal = true;
   }
 
-  // 7. Trim Leaks (MEDIUM TIER LEVEL 2 DYNAMIC)
+  // 7. Trim Leaks
   if (intent === "TRIM_LEAKS") {
     const medMembership = (normMed * 100).toFixed(0);
 
-    // Dynamic Category Detection
     let categoryAdvice = "non-essential spending";
     if (summary.categoryBreakdown && summary.categoryBreakdown.length > 0) {
       const sorted = [...summary.categoryBreakdown].sort((a, b) => b.amount - a.amount);
@@ -233,21 +413,17 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     node.response.message = `✂️ **Spending Leak Analysis:**\n\n🧠 **Fuzzy Reasoning:** Your expense ratio sits at **${spendRatio.toFixed(1)}%**, placing you at **${medMembership}% membership in the MODERATE Set**.\n\n📌 **Lily's Advice:** Reducing expenses in ${categoryAdvice} by 10% will shift your dominant set from MODERATE to OPTIMAL!`;
     node.response.alertTier = "Stable";
 
-    // 🔀 Override chips with Level 3 Nested Fuzzy Sub-Questions
     suggestedQuestions = getNestedFuzzyQuestions("TRIM_LEAKS", memberships);
     node.isTerminal = false;
   }
 
-  // 8. Emergency Buffer Check (LEVEL 3 NESTED / BUFFER INTENT)
+  // 8. Emergency Buffer Check
   if (intent === "CHECK_EMERGENCY_FUND") {
-    const monthlyExpenses = summary.totalExpense || 1;
-    const monthsOfBuffer = (summary.balance / monthlyExpenses).toFixed(1);
-
-    if (parseFloat(monthsOfBuffer) >= 3) {
-      node.response.message = `🛡️ **Emergency Buffer Check:**\n\nYour current balance of **₱${summary.balance.toLocaleString()}** covers approximately **${monthsOfBuffer} months** of expenses! Your cushion is safe. 🌟`;
+    if (buffer >= 3) {
+      node.response.message = `🛡️ **Emergency Buffer Check:**\n\nYour current balance of **₱${summary.balance.toLocaleString()}** covers approximately **${buffer} months** of expenses! Your cushion is safe. 🌟`;
       node.response.alertTier = "Optimal";
     } else {
-      node.response.message = `🛡️ **Emergency Buffer Check:**\n\nYour current balance of **₱${summary.balance.toLocaleString()}** covers **${monthsOfBuffer} months** of expenses. Try building this up to cover at least 3 months for full safety! ⚠️`;
+      node.response.message = `🛡️ **Emergency Buffer Check:**\n\nYour current balance of **₱${summary.balance.toLocaleString()}** covers **${buffer} months** of expenses. Try building this up to cover at least 3 months for full safety! ⚠️`;
       node.response.alertTier = "Caution";
     }
 
@@ -255,42 +431,45 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     node.isTerminal = true;
   }
 
-  // 9. Monthly Comparison Check (MEDIUM/GENERAL TIER LEVEL 3 NESTED)
-  if (intent === "COMPARE_MONTHS") {
-    const comparison = await transactionModel.getMonthlyComparisonFromDB();
-    const currentExpense = parseFloat(comparison.current_month_expense) || 0;
-    const lastExpense = parseFloat(comparison.last_month_expense) || 0;
+  // 9. Monthly Comparison & Acceleration Check
+  if (intent === "COMPARE_MONTHS" || intent === "CHECK_ACCELERATION") {
+    const lastExpense = summary.lastMonthExpense;
+    const currentExpense = summary.totalExpense;
+    const accelStatus = summary.burnRateMetrics.status;
+    const accelText = acceleration >= 0 ? `+${acceleration}% faster` : `${acceleration}% slower`;
 
     if (lastExpense === 0) {
-      node.response.message = `📅 **Monthly Comparison:** You spent **₱${currentExpense.toLocaleString()}** this month. (No expenses recorded for last month to compare).`;
+      node.response.message = `📅 **Monthly Comparison:** You spent **₱${currentExpense.toLocaleString()}** this month at a pace of ₱${dailyPace}/day. (No expenses recorded for last month to calculate acceleration).`;
       node.response.alertTier = "Info";
+    } else if (accelStatus === "ACCELERATING") {
+      node.response.message = `📈 **Spending Acceleration Alert!**\n\n` +
+        `• **Current Daily Pace:** ₱${dailyPace.toLocaleString()}/day\n` +
+        `• **Last Month Daily Pace:** ₱${summary.burnRateMetrics.lastMonthDailyPace.toLocaleString()}/day\n` +
+        `• **Pace Trend:** Spending **${accelText}** than last month!\n\n` +
+        `⚠️ **Lily's Insight:** Even if your raw total spending looks manageable, your current velocity will exhaust your budget faster than usual!`;
+      node.response.alertTier = "Warning";
     } else {
-      const diff = currentExpense - lastExpense;
-      const percentageChange = Math.abs(Math.round((diff / lastExpense) * 100));
-
-      if (diff > 0) {
-        node.response.message = `📈 **Spending Increase:** You spent **₱${currentExpense.toLocaleString()}** this month compared to **₱${lastExpense.toLocaleString()}** last month (+${percentageChange}%).\n\n🧠 **Fuzzy Insight:** This increase pushed your expense ratio to **${spendRatio.toFixed(1)}%** (${dominantTier.toUpperCase()} state). Let's trim non-essentials to stabilize your score! ⚠️`;
-        node.response.alertTier = "Warning";
-      } else {
-        node.response.message = `📉 **Great Improvement!** You spent **₱${currentExpense.toLocaleString()}** this month versus **₱${lastExpense.toLocaleString()}** last month (-${percentageChange}%).\n\n🧠 **Fuzzy Insight:** This savings trend maintains your score at **${Math.round(healthScore)}/100** in the **${dominantTier.toUpperCase()}** fuzzy set! 🎉`;
-        node.response.alertTier = "Optimal";
-      }
+      node.response.message = `📉 **Controlled Spending Speed!**\n\n` +
+        `• **Current Daily Pace:** ₱${dailyPace.toLocaleString()}/day\n` +
+        `• **Last Month Daily Pace:** ₱${summary.burnRateMetrics.lastMonthDailyPace.toLocaleString()}/day\n` +
+        `• **Pace Trend:** Spending **${accelText}** than last month.\n\n` +
+        `🎉 **Lily's Insight:** Excellent pacing! You are keeping your daily burn rate well under control.`;
+      node.response.alertTier = "Optimal";
     }
   }
 
-  // 10. Surplus Advice Strategy (LOW TIER LEVEL 2 DYNAMIC)
+  // 10. Surplus Advice Strategy
   if (intent === "SURPLUS_ADVICE") {
     const lowMembership = (normLow * 100).toFixed(0);
 
     node.response.message = `💡 **Savings Surplus Strategy:**\n\n🧠 **Fuzzy Reasoning:** You have a strong **${lowMembership}% membership in the OPTIMAL/LOW Set** with a health score of ${Math.round(healthScore)}/100.\n\n📌 **Lily's Recommendation:** Allocate 70% of your remaining balance (₱${summary.balance.toLocaleString()}) to an Emergency Fund and 30% toward high-yield savings or investments!`;
     node.response.alertTier = "Optimal";
 
-    // 🔀 Override chips with Level 3 Nested Fuzzy Sub-Questions
     suggestedQuestions = getNestedFuzzyQuestions("SURPLUS_ADVICE", memberships);
     node.isTerminal = false;
   }
 
-  // 11. Allocate Surplus into Investments (LOW TIER LEVEL 3 NESTED)
+  // 11. Allocate Surplus into Investments
   if (intent === "ALLOCATE_SURPLUS") {
     const totalSurplus = summary.balance;
     const emergencyFundPart = totalSurplus * 0.7;
@@ -299,10 +478,10 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     node.response.message = `📈 **Optimal Allocation Split:**\n\nBased on your current balance of **₱${totalSurplus.toLocaleString()}**:\n• **₱${emergencyFundPart.toLocaleString()}** (70%) -> High-Yield Emergency Savings\n• **₱${investmentPart.toLocaleString()}** (30%) -> Growth / Investments\n\nThis keeps your risk low while maximizing growth! 🚀`;
     node.response.alertTier = "Optimal";
     suggestedQuestions = [];
-    node.isTerminal = true; // Leaf node reached
+    node.isTerminal = true;
   }
 
-  // 12. Raise Savings Target (LOW TIER LEVEL 3 NESTED)
+  // 12. Raise Savings Target
   if (intent === "RAISE_SAVINGS_TARGET") {
     const currentTarget = summary.targetSavingsRate || 20;
     const recommendedTarget = currentTarget + 5;
@@ -310,21 +489,22 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     node.response.message = `🚀 **Target Elevation Advice:**\n\nYour current savings target is **${currentTarget}%**. Because your Expense Ratio sits comfortably at **${spendRatio.toFixed(1)}%**, Lily suggests raising your target rate to **${recommendedTarget}%**!`;
     node.response.alertTier = "Optimal";
     suggestedQuestions = [];
-    node.isTerminal = true; // Leaf node reached
+    node.isTerminal = true;
   }
 
-  // 🔄 DYNAMIC GIF INJECTION: Automatically assign GIF based on final alertTier
+  // 🔄 DYNAMIC GIF INJECTION
   if (node.response) {
     node.response.gifUrl = getLilyGif(node.response.alertTier);
   }
 
-  // 13. Build Proof of Reasoning for Chat Accordion / Debugger
-  const proofOfReasoning = {
-    crispInput: `Expense Ratio = ${spendRatio.toFixed(2)}%`,
-    dominantSet: dominantTier.toUpperCase(),
-    activeRule: `IF expense_ratio IS ${dominantTier} THEN health_status IS ${node.response?.alertTier || 'Evaluated'}`,
+  // 13. Build Proof of Reasoning
+  const proofOfReasoning = dynamicProofOverride || {
+    crispInput: `Ratio = ${spendRatio.toFixed(2)}% | Buffer = ${buffer} mos | Accel = ${acceleration}% (₱${dailyPace}/day)`,
+    dominantSet: `EXPENSE: ${dominantTier.toUpperCase()} | PACE: ${summary.burnRateMetrics.status}`,
+    activeRule: `IF expense_ratio IS ${dominantTier} AND burn_acceleration IS ${summary.burnRateMetrics.status} THEN status IS ${node.response?.alertTier || 'Evaluated'}`,
     healthScore: Math.round(healthScore),
     memberships: {
+      veryLow: parseFloat(normVeryLow.toFixed(2)),
       low: parseFloat(normLow.toFixed(2)),
       medium: parseFloat(normMed.toFixed(2)),
       high: parseFloat(normHigh.toFixed(2))

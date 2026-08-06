@@ -16,7 +16,6 @@
 <header class="app-header">
   <div class="brand">
     <span class="brand-mark" aria-hidden="true">
-      <!-- Standardized to happy.gif asset -->
       <img src="assets/happy.gif" alt="" class="brand-mark__img">
     </span>
     <div class="brand-text">  
@@ -37,7 +36,6 @@
   <section class="card lily-card" aria-label="Financial health overview">
     <div class="lily-card__pet">
       <div class="lily-avatar-frame">
-        <!-- Default fallback matches the standard path updated in dashboard.js -->
         <img src="assets/happy.gif" alt="Lily the cat" class="lily-avatar" id="lilyAvatar">
       </div>
       <p class="lily-mood" id="lilyMood">Lily status: <strong>Optimal</strong> 😺</p>
@@ -133,21 +131,22 @@
     <div class="trend-body">
       <div class="trend-figure">
         <span class="trend-figure__label">Previous Month</span>
-        <span class="trend-figure__value" data-mono>₱19,000</span>
+        <span class="trend-figure__value" id="trendPrevMonth" data-mono>₱0</span>
       </div>
 
-      <div class="trend-arrow trend-arrow--down" aria-hidden="true">↓</div>
+      <div class="trend-arrow" id="trendArrow" aria-hidden="true">↓</div>
 
       <div class="trend-figure">
         <span class="trend-figure__label">Current Month</span>
-        <span class="trend-figure__value" data-mono>₱17,000</span>
+        <span class="trend-figure__value" id="trendCurrMonth" data-mono>₱0</span>
       </div>
 
-      <div class="trend-indicator trend-indicator--good">
-        <span aria-hidden="true">📉</span>
+      <div class="trend-indicator" id="trendIndicator">
+        <span id="trendIcon" aria-hidden="true">📉</span>
         <div>
-          <strong>Decreasing</strong>
-          <p>Spending decreased by 10%</p>
+          <strong id="trendBadge">Decelerating</strong>
+          <p id="trendAccelText">Daily Burn Rate: 0%</p>
+          <small id="trendPaceText" style="color: #6c757d; display: block; margin-top: 2px;">Current Pace: ₱0/day</small>
         </div>
       </div>
     </div>
@@ -198,7 +197,8 @@
     <a href="chat.html" class="lily-widget__link">Talk to Lily →</a>
   </div>
 </div>
-<!-- Fuzzy Velocity Nudge Card -->
+
+<!-- ============ FUZZY VELOCITY NUDGE CARD ============ -->
 <div class="nudge-card" id="fuzzyNudgeCard">
   <div class="nudge-header">
     <span class="nudge-icon">⚡</span>
@@ -220,6 +220,7 @@
     </div>
   </div>
 </div>
+
 <!-- ============ ADD TRANSACTION MODAL ============ -->
 <div class="modal-overlay" id="modalOverlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">

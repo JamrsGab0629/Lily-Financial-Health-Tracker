@@ -103,11 +103,11 @@ async function getTotalsFromDB() {
 async function getCategoryBreakdownFromDB() {
     const categoryQuery = `
         SELECT 
-            category, 
+            COALESCE(category, 'Uncategorized') AS category, 
             SUM(amount::numeric) AS total_amount 
         FROM transactions 
-        WHERE LOWER(TRIM(type)) = 'expense'
-        GROUP BY category
+        WHERE LOWER(TRIM(type)) IN ('expense', 'expenses', 'debit')
+        GROUP BY COALESCE(category, 'Uncategorized')
         ORDER BY total_amount DESC;
     `;
     const result = await pool.query(categoryQuery);

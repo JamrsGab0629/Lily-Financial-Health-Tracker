@@ -1,31 +1,49 @@
 // models/questionsModel.js
 
-/**
- * 1. COMMON / STATIC ANCHOR QUESTIONS (Baseline navigation)
- */
-const COMMON_QUESTIONS = [
-  {
-    id: "core_highest_spend",
-    intent: "CHECK_HIGHEST_SPENDING",
-    text: "🔍 Check Highest Spending",
-    label: "🔍 Check Highest Spending"
-  },
-  {
-    id: "core_needs_wants",
-    intent: "CHECK_NEEDS_VS_WANTS",
-    text: "⚖️ Needs vs. Wants Audit",
-    label: "⚖️ Needs vs. Wants Audit"
-  },
-  {
-    id: "core_savings_goal",
-    intent: "CHECK_SAVINGS_GOAL",
-    text: "🎯 Did I hit my Savings Goal?",
-    label: "🎯 Did I hit my Savings Goal?"
-  }
-];
+
+function getFuzzifiedCommonQuestions(memberships = { low: 1, medium: 0, high: 0 }) {
+  const mu_low = memberships.low || memberships.veryLow || 0;
+  const mu_med = memberships.medium || memberships.med || memberships.moderate || 0;
+  const mu_high = memberships.high || memberships.veryHigh || 0;
+
+  const isHighRisk = mu_high > 0.5;
+  const isCaution = mu_med > 0.5;
+
+  return [
+    {
+      id: "core_highest_spend",
+      intent: "CHECK_HIGHEST_SPENDING",
+      text: isHighRisk 
+        ? "⚠️ Audit Overspending Leaks" 
+        : isCaution 
+          ? "📊 Review High Category Spending" 
+          : "🔍 Check Highest Spending",
+      label: "Check Highest Spending",
+      fuzzyWeight: parseFloat((mu_low * 0.8 + mu_med * 0.9 + mu_high * 1.0).toFixed(3))
+    },
+    {
+      id: "core_needs_wants",
+      intent: "CHECK_NEEDS_VS_WANTS",
+      text: isHighRisk 
+        ? "🚨 Emergency Needs vs. Wants Audit" 
+        : "⚖️ Needs vs. Wants Audit",
+      label: "Needs vs. Wants Audit",
+      fuzzyWeight: parseFloat((mu_low * 0.7 + mu_med * 0.9 + mu_high * 1.0).toFixed(3))
+    },
+    {
+      id: "core_savings_goal",
+      intent: "CHECK_SAVINGS_GOAL",
+      text: isHighRisk 
+        ? "📉 Savings Deficit Check" 
+        : "🎯 Did I hit my Savings Goal?",
+      label: "Savings Goal Check",
+      fuzzyWeight: parseFloat((mu_low * 1.0 + mu_med * 0.8 + mu_high * 0.2).toFixed(3))
+    }
+  ];
+}
 
 /**
- * 2. MASTER FUZZY DYNAMIC POOL (Level 2 Dynamic + Level 3 Nested)
+ * 2. MASTER FUZZY DYNAMIC POOL
  */
 const FUZZY_DYNAMIC_POOL = [
   {
@@ -33,7 +51,6 @@ const FUZZY_DYNAMIC_POOL = [
     intent: "FREEZE_BUDGET",
     text: "🚨 Activate Emergency Freeze Budget",
     weights: { low: 0.0, medium: 0.3, high: 1.0 },
-    // 🔀 LEVEL 3 NESTED FUZZY SUB-QUESTIONS (HIGH TIER FOCUS)
     nestedFuzzyQuestions: [
       {
         id: "sub_cut_wants",
@@ -54,7 +71,6 @@ const FUZZY_DYNAMIC_POOL = [
     intent: "TRIM_LEAKS",
     text: "✂️ Find potential spending leaks",
     weights: { low: 0.1, medium: 1.0, high: 0.6 },
-    // 🔀 LEVEL 3 NESTED FUZZY SUB-QUESTIONS (MEDIUM TIER FOCUS)
     nestedFuzzyQuestions: [
       {
         id: "sub_compare_month",
@@ -75,7 +91,6 @@ const FUZZY_DYNAMIC_POOL = [
     intent: "SURPLUS_ADVICE",
     text: "💡 Where should I put my savings surplus?",
     weights: { low: 1.0, medium: 0.2, high: 0.0 },
-    // 🔀 LEVEL 3 NESTED FUZZY SUB-QUESTIONS (LOW TIER FOCUS)
     nestedFuzzyQuestions: [
       {
         id: "sub_investment_split",
@@ -94,12 +109,9 @@ const FUZZY_DYNAMIC_POOL = [
 ];
 
 /**
- * 🔀 Fuzzy Vector Evaluator for Level 2 Dynamic Question
+ * Evaluates dynamic dynamic questions based on membership inputs
  */
-// models/questionsModel.js - Robust Fuzzy Membership Reader
-
 function getFuzzyDynamicQuestions(memberships = { low: 1, medium: 0, high: 0 }, limit = 1) {
-  // Read memberships safely across different naming conventions (med / medium / moderate)
   const mu_low = memberships.low || memberships.veryLow || 0;
   const mu_med = memberships.medium || memberships.med || memberships.moderate || 0;
   const mu_high = memberships.high || memberships.veryHigh || 0;
@@ -123,15 +135,15 @@ function getFuzzyDynamicQuestions(memberships = { low: 1, medium: 0, high: 0 }, 
 }
 
 /**
- * 🔀 Fuzzy Vector Evaluator for Level 3 Nested Sub-Questions
+ * Evaluates level 3 sub-questions
  */
 function getNestedFuzzyQuestions(parentIntent, memberships = { low: 1, medium: 0, high: 0 }) {
   const parentNode = FUZZY_DYNAMIC_POOL.find(q => q.intent === parentIntent);
   if (!parentNode || !parentNode.nestedFuzzyQuestions) return [];
 
-  const mu_low = memberships.low || 0;
-  const mu_med = memberships.medium || memberships.med || 0;
-  const mu_high = memberships.high || 0;
+  const mu_low = memberships.low || memberships.veryLow || 0;
+  const mu_med = memberships.medium || memberships.med || memberships.moderate || 0;
+  const mu_high = memberships.high || memberships.veryHigh || 0;
 
   const scored = parentNode.nestedFuzzyQuestions.map(sub => {
     const score = (mu_low * sub.weights.low) +
@@ -152,26 +164,38 @@ function getNestedFuzzyQuestions(parentIntent, memberships = { low: 1, medium: 0
 }
 
 /**
- * Default getter: 3 Baseline + Top 1 Dynamic Fuzzy Question
+ * Returns Fuzzified Anchors + Top Dynamic Question
  */
 function getQuestionsForMood(dominantTier, memberships = null) {
   const fuzzyVector = memberships || {
-    low: dominantTier === 'low' ? 1 : 0,
-    medium: dominantTier === 'medium' ? 1 : 0,
-    high: dominantTier === 'high' ? 1 : 0
+    low: dominantTier === 'low' || dominantTier === 'veryLow' ? 1 : 0,
+    medium: dominantTier === 'medium' || dominantTier === 'moderate' ? 1 : 0,
+    high: dominantTier === 'high' || dominantTier === 'veryHigh' ? 1 : 0
   };
 
-  const dynamicQuestions = getFuzzyDynamicQuestions(fuzzyVector, 1);
+  const dynamicAnchors = getFuzzifiedCommonQuestions(fuzzyVector);
+  const dynamicFuzzyQuestions = getFuzzyDynamicQuestions(fuzzyVector, 1);
 
   return [
-    ...COMMON_QUESTIONS,
-    ...dynamicQuestions
+    ...dynamicAnchors,
+    ...dynamicFuzzyQuestions
   ];
 }
 
+// Key-based QUESTIONS map export to prevent reference crashes
+const QUESTIONS = {
+  CHECK_HIGHEST_SPENDING: { intent: "CHECK_HIGHEST_SPENDING", text: "🔍 Check Highest Spending", label: "Check Highest Spending" },
+  CHECK_NEEDS_VS_WANTS: { intent: "CHECK_NEEDS_VS_WANTS", text: "⚖️ Needs vs. Wants Audit", label: "Needs vs. Wants Audit" },
+  CHECK_SAVINGS_GOAL: { intent: "CHECK_SAVINGS_GOAL", text: "🎯 Did I hit my Savings Goal?", label: "Savings Goal Check" },
+  CUT_EXPENSES: { intent: "CUT_EXPENSES", text: "Where can I cut back? ✂️", label: "Where can I cut back? ✂️" },
+  FREEZE_BUDGET: { intent: "FREEZE_BUDGET", text: "Freeze Budget 🚨", label: "Freeze Budget 🚨" }
+};
+
 module.exports = {
-  COMMON_QUESTIONS,
+  QUESTIONS,
   FUZZY_DYNAMIC_POOL,
-  getQuestionsForMood,
-  getNestedFuzzyQuestions
+  getFuzzifiedCommonQuestions,
+  getFuzzyDynamicQuestions,
+  getNestedFuzzyQuestions,
+  getQuestionsForMood
 };
