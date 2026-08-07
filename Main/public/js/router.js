@@ -11,7 +11,7 @@
     '/': {
       file: 'landing.html',
       title: 'Lily — Welcome',
-      script: null, // TODO: set to e.g. 'js/landing.js' once landing.html exists
+      script: null, 
     },
     '/dashboard': {
       file: 'dashboard.html',
@@ -87,7 +87,7 @@
       runPageScript(route.script);
       window.scrollTo(0, 0);
       window.dispatchEvent(new CustomEvent('lily:route-changed', { detail: { path } }));
-      window.dispatchEvent(new Event('lily:ready')); // no-op after first load once the splash is gone
+      window.dispatchEvent(new Event('lily:ready')); 
     } catch (err) {
       console.error(err);
       appRoot.innerHTML = `<main class="dashboard"><p style="padding:2rem;color:var(--danger);">Couldn't load this page. Check the console for details.</p></main>`;

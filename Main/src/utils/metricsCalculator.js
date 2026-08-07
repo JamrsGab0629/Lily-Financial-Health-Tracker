@@ -27,8 +27,8 @@ function calculateBurnRateAcceleration(currentMonthExpense, lastMonthExpense, cu
 
   // Determine directional status for UI
   let status = "NEUTRAL";
-  if (accelerationPct > 5) status = "ACCELERATING"; // Spending faster 📈
-  else if (accelerationPct < -5) status = "DECELERATING"; // Spending slower 📉
+  if (accelerationPct > 5) status = "ACCELERATING"; // Spending faster 
+  else if (accelerationPct < -5) status = "DECELERATING"; // Spending slower 
 
   return {
     currentDailyPace: parseFloat(currentDailyPace.toFixed(2)),

@@ -70,7 +70,7 @@ function evaluateSavingsFuzzyRules(expenseRatio, savingsGap, burnPace = 1.0, wan
   const burn = evaluateBurnPaceAntecedents(burnPace);
   const wants = fuzzifyNeedsWants(wantsRatio);
 
-  // --- MAMDANI RULE EVALUATIONS (MIN OPERATORS) ---
+  //  MAMDANI RULE EVALUATIONS (MIN OPERATORS) 
   const r1_crit_discretionary = Math.min(Math.max(exp.veryHigh, exp.high), wants.discretionaryHeavy);
   const r2_crit_burn = Math.min(Math.max(exp.veryHigh, exp.high), burn.accelerating);
   const r3_crit_gap = Math.min(gap.largeGap, burn.accelerating);
@@ -89,7 +89,7 @@ function evaluateSavingsFuzzyRules(expenseRatio, savingsGap, burnPace = 1.0, wan
 
   const cautionDegree = Math.max(r4_caution_moderate, r5_caution_pace, r6_caution_essential_pass);
 
-  // --- RESOLVE DOMINANT TIER & ACTIVE RULE TEXT ---
+  // RESOLVE DOMINANT TIER & ACTIVE RULE TEXT 
   if (criticalDegree > 0 && criticalDegree >= optimalDegree && criticalDegree >= cautionDegree) {
     let ruleText = "IF expense_ratio IS high AND wants IS discretionaryHeavy THEN status IS Critical";
     if (r2_crit_burn === criticalDegree) {

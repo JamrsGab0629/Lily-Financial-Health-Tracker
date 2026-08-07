@@ -16,9 +16,7 @@ const FALLBACK_QUESTIONS = {
 };
 
 const DECISION_TREE = {
-  // ==========================================
-  // LEVEL 1: ROOT NODE (Fuzzy Set Branches)
-  // ==========================================
+ 
   "CHECK_HEALTH": {
     veryLow: {
       response: RESPONSES.OPTIMAL || { message: "Financial health is optimal!", alertTier: "Optimal" },

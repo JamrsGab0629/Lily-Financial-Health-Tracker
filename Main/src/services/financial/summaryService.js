@@ -40,7 +40,6 @@ async function getFinancialSummary() {
     transactionModel.getMonthlyComparisonFromDB().catch(() => ({ current_month_expense: 0, last_month_expense: 0 }))
   ]);
 
-  // Defensive parsing to handle objects, arrays, or pg result wrappers safely
   const totals = Array.isArray(totalsRes) ? totalsRes[0] : (totalsRes?.rows ? totalsRes.rows[0] : totalsRes) || {};
   const comparison = Array.isArray(comparisonRes) ? comparisonRes[0] : (comparisonRes?.rows ? comparisonRes.rows[0] : comparisonRes) || {};
 
@@ -48,10 +47,16 @@ async function getFinancialSummary() {
   const totalExpense = parseFloat(totals.total_expense || totals.expense || 0);
   const lastMonthExpense = parseFloat(comparison.last_month_expense || 0);
   
-  const categoryBreakdown = (categoryRows?.rows || categoryRows || []).map(row => ({
+  let categoryBreakdown = (categoryRows?.rows || categoryRows || []).map(row => ({
     category: row.category || "Uncategorized",
     amount: parseFloat(row.total_amount || row.amount) || 0
   }));
+
+  // 🔥 FIX 1: Sort categories from highest amount to lowest
+  categoryBreakdown.sort((a, b) => b.amount - a.amount);
+
+  // 🔥 FIX 2: Dynamically grab the top category name (defaults to "General" if empty)
+  const topCategory = categoryBreakdown.length > 0 ? categoryBreakdown[0].category : "General";
 
   const { computedNeeds, computedWants } = classifyNeedsAndWants(categoryBreakdown);
 
@@ -84,6 +89,7 @@ async function getFinancialSummary() {
     expenseRatio: parseFloat(expenseRatio.toFixed(2)),
     targetSavingsRate: targetRate || 20,
     categoryBreakdown,
+    topCategory, // 🔥 FIX 3: Expose it so controllers can use it
     burnRateMetrics,
     emergencyBufferMonths
   };
