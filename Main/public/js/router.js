@@ -21,7 +21,7 @@
     '/chat': {
       file: 'chat.html',
       title: 'Lily — Chat',
-      script: 'js/chat.js',
+      script: 'js/chat/chat.js',
     },
   };
 

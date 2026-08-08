@@ -1,6 +1,4 @@
-// Runs `fn` right away if the DOM is already parsed (true when the router
-// injects this script after navigation), or waits for DOMContentLoaded if
-// the page was loaded normally and is still parsing.
+
 function whenReady(fn) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', fn, { once: true });
@@ -22,11 +20,7 @@ whenReady(() => {
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }
 
-  /*
-  =====================================================
-  MESSAGE RENDERER (Supports Dynamic GIF Avatars & Fuzzy Proof)
-  =====================================================
-  */
+  
   function appendMessage(text, sender, proofData = null) {
     const msg = document.createElement('div');
     msg.className = 'msg msg--' + sender;
@@ -35,7 +29,7 @@ whenReady(() => {
     avatar.className = 'msg-avatar';
     avatar.setAttribute('aria-hidden', 'true');
 
-    // 💡 FIXED: Render GIF inside avatar if lilyFace is an <img> tag, else fallback to emoji
+    //  Render GIF inside avatar if lilyFace is an <img> tag, else fallback to emoji
     if (sender === 'lily') {
       if (lilyFace && lilyFace.tagName === 'IMG' && lilyFace.src) {
         const img = document.createElement('img');
@@ -62,7 +56,7 @@ whenReady(() => {
     textNode.textContent = text;
     bubble.appendChild(textNode);
 
-    // 💡 AUTOMATED FUZZY PROOF OF REASONING (Explainable AI)
+    //  AUTOMATED FUZZY PROOF OF REASONING
     if (sender === 'lily' && proofData) {
       const proofBox = document.createElement('details');
       proofBox.className = 'proof-box';
@@ -157,7 +151,7 @@ whenReady(() => {
       const questions = payload.suggestedQuestions || payload.nestedQuestions || responseObj.nestedQuestions;
       const isTerminal = payload.isTerminal ?? responseObj.isTerminal ?? false;
 
-      // 4. 💡 FIXED: Update Lily Visual State (Auto Convert <span>/<div> to <img> if needed)
+      // 4 Update Lily Visual State (Auto Convert <span>/<div> to <img> if needed)
       if (gifUrl && lilyFace) {
         if (lilyFace.tagName !== 'IMG') {
           const newImg = document.createElement('img');
@@ -196,11 +190,6 @@ whenReady(() => {
     }, delay);
   }
 
-  /*
-  =====================================================
-  DYNAMIC BUTTON RENDERER (Renders Level 2 & 3 Nodes)
-  =====================================================
-  */
   function renderDynamicChips(nestedQuestions, isTerminal) {
     suggestedList.innerHTML = ''; // Clear existing chips
 
