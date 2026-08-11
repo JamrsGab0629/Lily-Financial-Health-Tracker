@@ -64,7 +64,6 @@ async function updateTransaction(req, res) {
                 req.params.id,
                 req.body
             );
-
         res.status(200).json({
             message: "Transaction updated successfully",
             transaction

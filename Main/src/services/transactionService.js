@@ -95,15 +95,10 @@ async function updateTransaction(id, data) {
     return transaction;
 }
 module.exports = {
-
     getTransactions,
-
     getTransactionById,
-
     createTransaction,
-
     updateTransaction,
-
     deleteTransaction
 
 };

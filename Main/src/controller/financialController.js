@@ -3,24 +3,24 @@ const { getFinancialSummary: fetchFinancialSummary } = require("../services/fina
 const { processLilyChat } = require("../services/financial/intentEngine");
 
 const fuzzyEngine = require("../utils/fuzzyEngine");
-const { generateFuzzyNudge } = require("../utils/fuzzyNudgeEngine"); // 👈 Import velocity nudge helper
+const { generateFuzzyNudge } = require("../utils/fuzzyNudgeEngine"); 
 
 async function getFinancialSummary(req, res) {
     try {
-        // 1. Call the newly modularized service function
+        
         const summary = await fetchFinancialSummary();
 
-        // 2. Calculate expense ratio safely
+       
         const rawRatio = summary.expenseRatio || summary.spendRatio || 0;
         const totalIncome = summary.totalIncome ?? 0;
         const totalExpenses = summary.totalExpense ?? summary.totalExpenses ?? 0;
         const topCategory = summary.topCategory || "Shopping";
 
-        // 3. Run Fuzzy Logic evaluation
+       
         const { dominantTier, memberships } = fuzzyEngine.getDominantFuzzyTier(rawRatio);
         const healthScore = fuzzyEngine.calculateHealthScore(memberships);
 
-        // 4. Map Lily's status & emotion based on dominant tier
+        
         const moodMap = {
             veryLow:  { status: "Excellent", emotion: "very_happy", emoji: "😸", message: "Your finances look incredible!" },
             low:      { status: "Good",      emotion: "happy",      emoji: "😺", message: "Your spending is well under control!" },
@@ -30,17 +30,15 @@ async function getFinancialSummary(req, res) {
         };
 
         const lilyState = moodMap[dominantTier] || moodMap.moderate;
-
-        // 5. Generate reverse-lookup velocity nudge
         const nudgeData = generateFuzzyNudge(totalIncome, totalExpenses, topCategory);
 
-        // 6. Return summary with healthScore, lily state, and nudge payload
+      
         res.status(200).json({
             ...summary,
             totalExpenses,
             healthScore,
             lily: lilyState,
-            nudge: nudgeData // 👈 Attached for the dashboard nudge card!
+            nudge: nudgeData 
         });
 
     } catch (error) {
@@ -55,8 +53,6 @@ async function getFinancialSummary(req, res) {
 async function handleLilyChat(req, res) {
     try {
         const { intent } = req.body;
-        
-        // Call the new Intent Engine process function directly
         const result = await processLilyChat(intent);
         
         return res.status(200).json({

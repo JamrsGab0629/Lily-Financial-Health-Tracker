@@ -177,7 +177,7 @@ module.exports = {
     updateTransaction,
     getTotalsFromDB,
     getCategoryBreakdownFromDB,
-    getMonthlyComparisonFromDB, // Exported here!
+    getMonthlyComparisonFromDB,
     getTargetSavingsRate,
     updateTargetSavingsRate
 };

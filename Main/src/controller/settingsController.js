@@ -14,7 +14,6 @@ async function getSettings(req, res) {
 async function updateSettings(req, res) {
   try {
     const { target_savings_rate } = req.body;
-    // 🔀 Changed from updateSettings() to modifyUserSettings()
     const settings = await settingsService.modifyUserSettings(target_savings_rate); 
     res.status(200).json({
       message: "Settings updated successfully",

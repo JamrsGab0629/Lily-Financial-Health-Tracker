@@ -14,14 +14,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. Serve static files from 'public' folder (located one level up from 'src')
+
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-// 2. API Routes
+
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/financial", financialRoutes);
 app.use("/api/settings", settingsRoutes);
-// 3. Serve dashboard.html on root '/' request
+
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "..", "public", "dashboard.html"));
 });
@@ -48,7 +48,7 @@ db.query("SELECT NOW()")
 
 // Graceful Shutdown
 process.on("SIGINT", async () => {
-    console.log("Closing database connection pool...");
+    console.log("Closing database connection pool.");
     if (db.end) await db.end();
     process.exit(0);
 });

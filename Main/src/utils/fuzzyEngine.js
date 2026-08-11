@@ -1,8 +1,6 @@
 // src/utils/fuzzyEngine.js
 
-/**
- * 1. Pure Triangular Membership Function
- */
+
 function getTriangularMembership(x, a, b, c) {
   if (x <= a || x >= c) return 0;
   if (x === b) return 1;
@@ -11,9 +9,9 @@ function getTriangularMembership(x, a, b, c) {
   return 0;
 }
 
-/**
- * 2. Input 1: Expense Ratio Antecedents (0.0 to 1.0+)
- */
+
+ // 2. Input 1: Expense Ratio Antecedents (0.0 to 1.0+)
+ 
 function evaluateExpenseAntecedents(spendRatio) {
   const x = Math.max(0, spendRatio);
   return {
@@ -25,9 +23,9 @@ function evaluateExpenseAntecedents(spendRatio) {
   };
 }
 
-/**
- * 3. Input 2: Savings Gap Ratio Antecedents (Target % - Actual %)
- */
+
+ // 3. Input 2: Savings Gap Ratio Antecedents (Target % - Actual %)
+ 
 function evaluateSavingsGapAntecedents(gapRatio) {
   const x = gapRatio;
   return {
@@ -37,9 +35,9 @@ function evaluateSavingsGapAntecedents(gapRatio) {
   };
 }
 
-/**
- * 4. Input 3: Burn Acceleration / Pace Antecedents
- */
+
+ // 4. Input 3: Burn Acceleration / Pace Antecedents
+ 
 function evaluateBurnPaceAntecedents(paceRatio) {
   const x = Math.max(0, paceRatio);
   return {
@@ -49,9 +47,9 @@ function evaluateBurnPaceAntecedents(paceRatio) {
   };
 }
 
-/**
- * 5. Input 4: Needs vs. Wants Ratio Antecedents
- */
+
+ // 5. Input 4: Needs vs. Wants Ratio Antecedents
+ 
 function fuzzifyNeedsWants(wantsRatio) {
   const x = Math.max(0, Math.min(1, wantsRatio));
   return {
@@ -61,9 +59,9 @@ function fuzzifyNeedsWants(wantsRatio) {
   };
 }
 
-/**
- * 6. 4-Variable Multi-Variable Fuzzy Inference Engine
- */
+
+ // 6. 4-Variable Multi-Variable Fuzzy Inference Engine
+ 
 function evaluateSavingsFuzzyRules(expenseRatio, savingsGap, burnPace = 1.0, wantsRatio = 0.5) {
   const exp = evaluateExpenseAntecedents(expenseRatio);
   const gap = evaluateSavingsGapAntecedents(savingsGap);
