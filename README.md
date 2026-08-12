@@ -22,7 +22,7 @@ Through Mamdani fuzzy logic, the system processes these inputs using IF-THEN rul
 ---
 
 ## 💻 Tech Stack
-* **Backend:** Node.js, JavaScript (ES6 Modules)
+* **Backend:** Express.js Node.js, JavaScript (ES6 Modules)
 * **Database:** PostgreSQL (`pg`)
 * **Cloud** Supabase
 * **Environment & Development:** `dotenv` (for environment configuration), `nodemon` (for live-reload development)
