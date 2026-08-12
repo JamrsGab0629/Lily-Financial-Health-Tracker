@@ -51,13 +51,23 @@ export async function initTargetRateEditor(onSuccessRefresh) {
 export function initTransactionModal(onSuccessRefresh) {
   const overlay = document.getElementById('modalOverlay');
   const form = document.getElementById('txForm');
+  const submitBtn = document.getElementById('submitModalBtn'); // Add reference to submit button
   if (!overlay || !form) return;
 
   let currentMode = 'income';
 
   const openModal = (mode) => {
     currentMode = mode;
-    updateEl('modalTitle', mode === 'income' ? 'Add Income' : 'Add Expense');
+    const isIncome = mode === 'income';
+    
+    updateEl('modalTitle', isIncome ? 'Add Income' : 'Add Expense');
+    
+    // Dynamically update the submit button text and styling class
+    if (submitBtn) {
+      submitBtn.textContent = isIncome ? 'Add Income' : 'Add Expense';
+      submitBtn.className = `btn ${isIncome ? 'btn--income' : 'btn--expense'}`;
+    }
+    
     overlay.removeAttribute('hidden');
   };
 
@@ -83,6 +93,6 @@ export function initTransactionModal(onSuccessRefresh) {
     });
 
     closeModal();
-    onSuccessRefresh(); // Tells the main controller to re-fetch and re-render
+    onSuccessRefresh();
   });
 }
