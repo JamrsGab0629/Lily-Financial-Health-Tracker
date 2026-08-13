@@ -52,10 +52,10 @@ async function getFinancialSummary() {
     amount: parseFloat(row.total_amount || row.amount) || 0
   }));
 
-  // 🔥 FIX 1: Sort categories from highest amount to lowest
+  
   categoryBreakdown.sort((a, b) => b.amount - a.amount);
 
-  // 🔥 FIX 2: Dynamically grab the top category name (defaults to "General" if empty)
+  
   const topCategory = categoryBreakdown.length > 0 ? categoryBreakdown[0].category : "General";
 
   const { computedNeeds, computedWants } = classifyNeedsAndWants(categoryBreakdown);
@@ -73,7 +73,16 @@ async function getFinancialSummary() {
     expenseRatio = (totalExpense / (totalIncome || 1)) * 100;
   }
 
-  const burnRateMetrics = calculateBurnRateAcceleration(totalExpense, lastMonthExpense);
+ // Compute standard burn rate metrics
+  let burnRateMetrics = calculateBurnRateAcceleration(totalExpense, lastMonthExpense);
+
+  if (lastMonthExpense === 0 && (totalExpense <= 10000 || (totalIncome > 0 && (totalExpense / totalIncome) <= 0.3))) {
+    burnRateMetrics = {
+      ...burnRateMetrics,
+      accelerationPct: 0,
+      status: "NORMAL"
+    };
+  }
   const projectedMonthlyExpense = burnRateMetrics.currentDailyPace * 30 || 1;
   const emergencyBufferMonths = parseFloat((balance / projectedMonthlyExpense).toFixed(1));
 

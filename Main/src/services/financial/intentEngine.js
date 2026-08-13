@@ -40,7 +40,19 @@ class IntentHandler {
         .map(item => `• ${item.category}: ₱${item.amount.toLocaleString()}`)
         .join("\n");
 
-      this.node.response.message = `🔍 **Highest Expense Audit:**\nYour top spending area is **${topCategory.category}** at ₱${topCategory.amount.toLocaleString()}.\n\n📊 **Full Category Breakdown:**\n${listText}\n\n🧠 **Fuzzy Context:** Because your current Expense Ratio is **${this.summary.expenseRatio.toFixed(1)}%**, evaluating this breakdown helps keep your dominant state in **${this.dominantTier.toUpperCase()}**!`;
+      
+      let emotionalToneMessage = "";
+      const spendRatio = this.summary.expenseRatio;
+      
+      if (this.healthScore < 40) {
+        emotionalToneMessage = `🙀 *Yikes!* Because your current Expense Ratio is a dangerous **${spendRatio.toFixed(1)}%**, this spending leak is actively pushing your budget into a **VERYHIGH** risk state! We need to freeze non-essential purchases immediately! 🛑`;
+      } else if (this.healthScore < 70) {
+        emotionalToneMessage = `🐱 *Hmm...* Your Expense Ratio is sitting at **${spendRatio.toFixed(1)}%**. Keeping an eye on this top category will help us pull your dominant state back into safety! 💡`;
+      } else {
+        emotionalToneMessage = `😺 *Looking great!* Even with this breakdown, your Expense Ratio is a healthy **${spendRatio.toFixed(1)}%**, keeping your financial state totally secure! ✨`;
+      }
+
+      this.node.response.message = `🔍 **Highest Expense Audit:**\nYour top spending area is **${topCategory.category}** at ₱${topCategory.amount.toLocaleString()}.\n\n📊 **Full Category Breakdown:**\n${listText}\n\n🧠 **Fuzzy Context:**\n${emotionalToneMessage}`;
     }
   }
 
@@ -67,31 +79,50 @@ class IntentHandler {
       wantsRatio
     );
 
-    const ui = getFuzzyReactionUI(fuzzyResult.tier);
+    const optimalUI = getFuzzyReactionUI(fuzzyResult.tier);
 
     if (fuzzyResult.tier === "CRITICAL" || this.summary.expenseRatio > 100) {
       const criticalUI = getFuzzyReactionUI("CRITICAL");
+      
+      let criticalAdvice = "";
+      if (needsPct > wantsPct) {
+        criticalAdvice = `Your essential overhead is too heavy for your current income stream. Look for ways to trim fixed costs! 📉`;
+      } else {
+        criticalAdvice = `Your discretionary spending on non-essentials is consuming your entire budget. Freeze discretionary purchases immediately! 💔`;
+      }
+
       this.node.response.message = `${criticalUI.reaction} **${criticalUI.headline}**\n\n` +
         `🚨 **Severe Overspending Detected!** Your total expense ratio is **${this.summary.expenseRatio.toFixed(1)}%**!\n\n` +
         `• **Wants (Discretionary):** **${wantsPct}%** (₱${wantsAmount.toLocaleString()})\n` +
         `• **Needs (Essential):** **${needsPct}%** (₱${needsAmount.toLocaleString()})\n\n` +
-        `Your discretionary spending on non-essentials is consuming your entire budget. Freeze discretionary purchases immediately! 💔`;
+        `${criticalAdvice}`;
+        
       this.node.response.alertTier = "Critical";
+      
     } else if (wantsPct >= 60) {
-      this.node.response.message = `${ui.reaction} **${ui.headline}**\n\n` +
+      // FIX: Explicitly fetch warning UI so it doesn't say "Perfect Balance" when wants are high
+      const warningUI = getFuzzyReactionUI("WARNING");
+      this.node.response.message = `${warningUI.reaction} **${warningUI.headline}**\n\n` +
         `You are allocating **${wantsPct}%** (₱${wantsAmount.toLocaleString()}) to non-essentials/Wants versus **${needsPct}%** (₱${needsAmount.toLocaleString()}) to Needs.\n\n` +
         `💡 **Lily's Tip:** Reining in non-essential purchases will quickly rebuild your savings cushion! 💸`;
       this.node.response.alertTier = "Warning";
     } else {
-      this.node.response.message = `${ui.reaction} **${ui.headline}**\n\n` +
+      this.node.response.message = `${optimalUI.reaction} **${optimalUI.headline}**\n\n` +
         `✅ **Great Priorities!** You are allocating **${needsPct}%** (₱${needsAmount.toLocaleString()}) to essential Needs versus **${wantsPct}%** (₱${wantsAmount.toLocaleString()}) to Wants.\n\n` +
         `Your spending balance and cushion look solid! 🌟`;
       this.node.response.alertTier = "Optimal";
     }
 
     let gapSet = savingsGapRatio <= 0 ? 'ONTRACK' : (savingsGapRatio >= 0.30 ? 'LARGEGAP' : 'MINORGAP');
-    let wantsSet = wantsRatio >= 0.70 ? 'DISCRETIONARYHEAVY' : (wantsRatio <= 0.30 ? 'ESSENTIALHEAVY' : 'BALANCED');
     let burnSet = burnAcceleration >= 2.0 ? 'ACCELERATING' : (burnAcceleration > 1.0 ? 'ELEVATED' : 'NORMAL');
+
+    const w = wantsRatio;
+    const ess = w <= 0.3 ? 1 : Math.max(0, (0.45 - w) / 0.15);
+    const bal = w >= 0.3 && w <= 0.5 ? (w - 0.3) / 0.2 : (w > 0.5 && w <= 0.7 ? (0.7 - w) / 0.2 : 0);
+    const disc = w >= 0.7 ? 1 : Math.max(0, (w - 0.5) / 0.2);
+
+    let dominantLabel = wantsRatio >= 0.70 ? 'DISCRETIONARYHEAVY' : (wantsRatio <= 0.30 ? 'ESSENTIALHEAVY' : 'BALANCED');
+    let wantsSet = `${dominantLabel} (Essential: ${ess.toFixed(2)}, Balanced: ${bal.toFixed(2)}, Discretionary: ${disc.toFixed(2)})`;
 
     this.dynamicProofOverride = {
       crispInput: `Ratio = ${this.summary.expenseRatio.toFixed(2)}% | Buffer = ${this.summary.emergencyBufferMonths} mos | Accel = ${this.summary.burnRateMetrics.accelerationPct}% (₱${this.summary.burnRateMetrics.currentDailyPace.toFixed(2)}/day)`,
@@ -320,10 +351,19 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
     handler.node.response.gifUrl = getLilyGif(handler.node.response.alertTier);
   }
 
+ // 1. Evaluate the REAL global fuzzy state to prevent chat bubble tiers from overriding the math
+  const realFuzzyState = evaluateSavingsFuzzyRules(
+    spendRatio / 100,
+    Math.max(0, (summary.targetSavingsRate - summary.savingsPercentage) / 100),
+    (summary.burnRateMetrics.accelerationPct || 0) / 100,
+    summary.totalWantsAmount ? (summary.totalWantsAmount / (summary.totalExpense || 1)) : 0.5
+  );
+
+  // 2. Build the fallback proof of reasoning using the real fuzzy math
   const proofOfReasoning = handler.dynamicProofOverride || {
     crispInput: `Ratio = ${spendRatio.toFixed(2)}% | Buffer = ${summary.emergencyBufferMonths} mos | Accel = ${summary.burnRateMetrics.accelerationPct}% (₱${summary.burnRateMetrics.currentDailyPace}/day)`,
     dominantSet: `EXPENSE: ${dominantTier.toUpperCase()} | PACE: ${summary.burnRateMetrics.status}`,
-    activeRule: `IF expense_ratio IS ${dominantTier} AND burn_acceleration IS ${summary.burnRateMetrics.status} THEN status IS ${handler.node.response?.alertTier || 'Evaluated'}`,
+    activeRule: realFuzzyState.activeRule, 
     healthScore: Math.round(healthScore),
     memberships: {
       veryLow: parseFloat((memberships.veryLow ?? 0).toFixed(2)),
@@ -335,7 +375,7 @@ async function processLilyChat(intent = "CHECK_HEALTH") {
 
   return {
     financialSummary: summary,
-    evaluatedTier: dominantTier,
+    evaluatedTier: dominantTier, // Ensure your frontend badge pulls from realFuzzyState.tier if needed
     fuzzyMemberships: memberships,
     suggestedQuestions: handler.suggestedQuestions,
     proofOfReasoning: proofOfReasoning,

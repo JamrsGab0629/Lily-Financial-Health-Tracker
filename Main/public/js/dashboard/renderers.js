@@ -84,7 +84,10 @@ function renderSpendingTrendUI(summary) {
   const currSpend = summary.totalExpense ?? summary.totalExpenses ?? 0;
   
   const accel = metrics.accelerationPct || 0;
-  const isAccelerating = metrics.status === "ACCELERATING";
+  const status = (metrics.status || "NORMAL").toUpperCase();
+  
+  const isAccelerating = status === "ACCELERATING";
+  const isDecelerating = status === "DECELERATING";
   const sign = accel >= 0 ? "+" : "";
 
   updateEl("trendPrevMonth", `₱${Number(prevSpend).toLocaleString()}`);
@@ -92,17 +95,28 @@ function renderSpendingTrendUI(summary) {
   
   const arrowEl = document.getElementById("trendArrow");
   if (arrowEl) {
-    arrowEl.textContent = isAccelerating ? "↑" : "↓";
-    arrowEl.className = `trend-arrow ${isAccelerating ? "trend-arrow--up" : "trend-arrow--down"}`;
+    arrowEl.textContent = isAccelerating ? "↑" : (isDecelerating ? "↓" : "→");
+    arrowEl.className = `trend-arrow ${isAccelerating ? "trend-arrow--up" : (isDecelerating ? "trend-arrow--down" : "trend-arrow--stable")}`;
   }
 
   const indicatorEl = document.getElementById("trendIndicator");
   if (indicatorEl) {
-    indicatorEl.className = `trend-indicator ${isAccelerating ? "trend-indicator--bad" : "trend-indicator--good"}`;
+    indicatorEl.className = `trend-indicator ${isAccelerating ? "trend-indicator--bad" : (isDecelerating ? "trend-indicator--good" : "trend-indicator--neutral")}`;
   }
 
-  updateEl("trendIcon", isAccelerating ? "📈" : "📉");
-  updateEl("trendBadge", isAccelerating ? "Accelerating" : "Decelerating");
+  
+  let badgeText = "Normal";
+  let icon = "📊";
+  
+  if (isAccelerating) {
+    badgeText = "Accelerating";
+    icon = "📈";
+  } else if (isDecelerating) {
+    badgeText = "Decelerating";
+    icon = "📉";
+  }
+  updateEl("trendIcon", icon);
+  updateEl("trendBadge", badgeText);
   updateEl("trendAccelText", `Daily Burn Rate: ${sign}${accel}%`);
   updateEl("trendPaceText", `Current Pace: ₱${Number(metrics.currentDailyPace || 0).toLocaleString()}/day`);
 }

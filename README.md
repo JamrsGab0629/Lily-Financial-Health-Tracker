@@ -6,7 +6,7 @@ Lily is an intelligent, empathetic personal financial health tracker powered by 
 
 ## 🎥 Presentation Video
 *Watch the project presentation and system walkthrough here:*
-Link (https://drive.google.com/file/d/16Ic2i0Xs4X1PJUibkl7BGWWsnE-yfGLe/view?usp=drive_link)
+Link (https://drive.google.com/file/d/1jvTD8TWgbcUKowZSt398KLkaXnM9XGqB/view?usp=sharing)
 
 ---
 

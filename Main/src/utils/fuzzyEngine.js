@@ -1,6 +1,5 @@
 // src/utils/fuzzyEngine.js
 
-
 function getTriangularMembership(x, a, b, c) {
   if (x <= a || x >= c) return 0;
   if (x === b) return 1;
@@ -9,9 +8,19 @@ function getTriangularMembership(x, a, b, c) {
   return 0;
 }
 
+/**
+ * Helper to handle ratio inputs safely without breaking values > 1.0
+ */
+function normalizeRatio(val) {
+  let num = typeof val === 'number' && !isNaN(val) ? val : 0;
+  // If passed as a percentage like 38.71, convert to decimal. 
+  // If passed as a true ratio like 3.8 (380%), keep it as is.
+  return num > 10.0 ? num / 100 : num;
+}
 
- // 2. Input 1: Expense Ratio Antecedents (0.0 to 1.0+)
- 
+/**
+ * 2. Input 1: Expense Ratio Antecedents (0.0 to 1.0+)
+ */
 function evaluateExpenseAntecedents(spendRatio) {
   const x = Math.max(0, spendRatio);
   return {
@@ -23,9 +32,9 @@ function evaluateExpenseAntecedents(spendRatio) {
   };
 }
 
-
- // 3. Input 2: Savings Gap Ratio Antecedents (Target % - Actual %)
- 
+/**
+ * 3. Input 2: Savings Gap Ratio Antecedents (Target % - Actual %)
+ */
 function evaluateSavingsGapAntecedents(gapRatio) {
   const x = gapRatio;
   return {
@@ -35,21 +44,21 @@ function evaluateSavingsGapAntecedents(gapRatio) {
   };
 }
 
-
- // 4. Input 3: Burn Acceleration / Pace Antecedents
- 
+/**
+ * 4. Input 3: Burn Acceleration / Pace Antecedents
+ */
 function evaluateBurnPaceAntecedents(paceRatio) {
   const x = Math.max(0, paceRatio);
   return {
-    normal: x <= 1.0 ? 1 : getTriangularMembership(x, 0.5, 1.0, 1.5),
-    elevated: getTriangularMembership(x, 1.0, 1.5, 2.0),
-    accelerating: x >= 2.0 ? 1 : (x > 1.5 ? (x - 1.5) / 0.5 : 0)
+    normal: x <= 1.0 ? 1 : getTriangularMembership(x, 0.5, 1.0, 1.6),
+    elevated: getTriangularMembership(x, 1.2, 1.6, 2.1),
+    accelerating: x >= 2.1 ? 1 : (x > 1.6 ? (x - 1.6) / 0.5 : 0)
   };
 }
 
-
- // 5. Input 4: Needs vs. Wants Ratio Antecedents
- 
+/**
+ * 5. Input 4: Needs vs. Wants Ratio Antecedents
+ */
 function fuzzifyNeedsWants(wantsRatio) {
   const x = Math.max(0, Math.min(1, wantsRatio));
   return {
@@ -59,21 +68,43 @@ function fuzzifyNeedsWants(wantsRatio) {
   };
 }
 
-
- // 6. 4-Variable Multi-Variable Fuzzy Inference Engine
- 
+/**
+ * 6. 4-Variable Multi-Variable Fuzzy Inference Engine
+ */
 function evaluateSavingsFuzzyRules(expenseRatio, savingsGap, burnPace = 1.0, wantsRatio = 0.5) {
-  const exp = evaluateExpenseAntecedents(expenseRatio);
+  const normalizedExpense = normalizeRatio(expenseRatio);
+  const exp = evaluateExpenseAntecedents(normalizedExpense);
   const gap = evaluateSavingsGapAntecedents(savingsGap);
   const burn = evaluateBurnPaceAntecedents(burnPace);
   const wants = fuzzifyNeedsWants(wantsRatio);
 
-  //  MAMDANI RULE EVALUATIONS (MIN OPERATORS) 
+  // SAFEGUARD 1: If expenses exceed income (> 100% ratio), force CRITICAL immediately
+  if (normalizedExpense > 1.0) {
+    return {
+      tier: "CRITICAL",
+      activeRule: "IF expense_ratio > 100% THEN status IS Critical (Expenses Exceed Income)",
+      memberships: { exp, gap, burn, wants },
+      degrees: { critical: 1.0, caution: 0, optimal: 0 }
+    };
+  }
+
+  // SAFEGUARD 2: If expense ratio is completely 0
+  if (normalizedExpense === 0) {
+    return {
+      tier: "OPTIMAL",
+      activeRule: "IF expense_ratio IS veryLow THEN status IS Optimal",
+      memberships: { exp, gap, burn, wants },
+      degrees: { critical: 0, caution: 0, optimal: 1 }
+    };
+  }
+
+  // MAMDANI RULE EVALUATIONS (MIN OPERATORS) 
   const r1_crit_discretionary = Math.min(Math.max(exp.veryHigh, exp.high), wants.discretionaryHeavy);
   const r2_crit_burn = Math.min(Math.max(exp.veryHigh, exp.high), burn.accelerating);
   const r3_crit_gap = Math.min(gap.largeGap, burn.accelerating);
+  const r7_crit_veryHigh = exp.veryHigh; 
 
-  const criticalDegree = Math.max(r1_crit_discretionary, r2_crit_burn, r3_crit_gap);
+  const criticalDegree = Math.max(r1_crit_discretionary, r2_crit_burn, r3_crit_gap, r7_crit_veryHigh);
 
   const optimalDegree = Math.min(
     Math.max(exp.veryLow, exp.low),
@@ -81,46 +112,36 @@ function evaluateSavingsFuzzyRules(expenseRatio, savingsGap, burnPace = 1.0, wan
     wants.essentialHeavy
   );
 
-  const r4_caution_moderate = Math.min(exp.moderate, gap.minorGap);
+  const r4_caution_moderate = Math.min(exp.moderate, Math.max(gap.minorGap, 0.1));
   const r5_caution_pace = Math.min(burn.elevated, wants.balanced);
-  const r6_caution_essential_pass = Math.min(Math.max(exp.veryHigh, exp.high), wants.essentialHeavy);
+  const r6_caution_essential_pass = Math.min(exp.high, wants.essentialHeavy);
 
-  const cautionDegree = Math.max(r4_caution_moderate, r5_caution_pace, r6_caution_essential_pass);
+  const cautionDegree = Math.max(r4_caution_moderate, r5_caution_pace, r6_caution_essential_pass, exp.moderate);
 
-  // RESOLVE DOMINANT TIER & ACTIVE RULE TEXT 
+  let resolvedTier = "OPTIMAL";
+  let activeRule = "";
+
   if (criticalDegree > 0 && criticalDegree >= optimalDegree && criticalDegree >= cautionDegree) {
-    let ruleText = "IF expense_ratio IS high AND wants IS discretionaryHeavy THEN status IS Critical";
+    resolvedTier = "CRITICAL";
+    activeRule = "IF expense_ratio IS high or veryhigh AND wants IS discretionaryHeavy THEN status IS Critical or Warning";
     if (r2_crit_burn === criticalDegree) {
-      ruleText = "IF expense_ratio IS high AND burn_acceleration IS ACCELERATING THEN status IS Critical";
+      activeRule = "IF expense_ratio IS high or veryhigh AND burn_acceleration IS ACCELERATING THEN status IS Critical or Warning";
     } else if (r3_crit_gap === criticalDegree) {
-      ruleText = "IF savings_gap IS largeGap AND burn_acceleration IS ACCELERATING THEN status IS Critical";
+      activeRule = "IF savings_gap IS largeGap AND burn_acceleration IS ACCELERATING THEN status IS Critical or Warning";
+    } else if (r7_crit_veryHigh === criticalDegree) {
+      activeRule = "IF expense_ratio IS veryHigh THEN status IS Critical";
     }
-
-    return {
-      tier: "CRITICAL",
-      activeRule: ruleText,
-      memberships: { exp, gap, burn, wants },
-      degrees: { critical: criticalDegree, caution: cautionDegree, optimal: optimalDegree }
-    };
-  } else if (optimalDegree > criticalDegree && optimalDegree >= cautionDegree) {
-    return {
-      tier: "OPTIMAL",
-      activeRule: "IF expense_ratio IS low AND savings_gap IS onTrack AND wants IS essentialHeavy THEN status IS Optimal",
-      memberships: { exp, gap, burn, wants },
-      degrees: { critical: criticalDegree, caution: cautionDegree, optimal: optimalDegree }
-    };
-  }
-
-  let cautionRuleText = "IF expense_ratio IS moderate AND savings_gap IS minorGap THEN status IS Caution";
-  if (r6_caution_essential_pass === cautionDegree) {
-    cautionRuleText = "IF expense_ratio IS high BUT wants IS essentialHeavy THEN status IS Caution";
-  } else if (r5_caution_pace === cautionDegree) {
-    cautionRuleText = "IF burn_pace IS elevated AND wants IS balanced THEN status IS Caution";
+  } else if (normalizedExpense >= 0.5) {
+    resolvedTier = normalizedExpense >= 0.75 ? "CRITICAL" : "CAUTION";
+    activeRule = resolvedTier === "CRITICAL" ? "IF expense_ratio IS high THEN status IS Critical" : "IF expense_ratio IS moderate THEN status IS Caution";
+  } else {
+    resolvedTier = "OPTIMAL";
+    activeRule = "IF expense_ratio IS veryLow THEN status IS Optimal";
   }
 
   return {
-    tier: "CAUTION",
-    activeRule: cautionRuleText,
+    tier: resolvedTier,
+    activeRule: activeRule,
     memberships: { exp, gap, burn, wants },
     degrees: { critical: criticalDegree, caution: cautionDegree, optimal: optimalDegree }
   };
@@ -129,7 +150,9 @@ function evaluateSavingsFuzzyRules(expenseRatio, savingsGap, burnPace = 1.0, wan
 /**
  * 7. Health Score Defuzzification
  */
-function calculateHealthScore(expMemberships) {
+function calculateHealthScore(expMemberships, normalizedExpense = 0) {
+  if (normalizedExpense > 1.0) return 10; // Force low health score on overspend
+
   const weights = { veryLow: 100, low: 80, moderate: 50, high: 25, veryHigh: 0 };
   let totalWeight = 0;
   let totalMembership = 0;
@@ -147,9 +170,7 @@ function calculateHealthScore(expMemberships) {
  * 8. Dominant Tier Helper
  */
 function getDominantFuzzyTier(inputRatio) {
-  let rawInput = typeof inputRatio === 'number' && !isNaN(inputRatio) ? inputRatio : 0;
-  const spendRatio = rawInput > 1.0 ? rawInput / 100 : rawInput;
-
+  const spendRatio = normalizeRatio(inputRatio);
   const memberships = evaluateExpenseAntecedents(spendRatio);
   let dominantTier = 'moderate';
   let maxWeight = -1;
