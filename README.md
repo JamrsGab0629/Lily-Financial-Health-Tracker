@@ -40,6 +40,16 @@ Before running the project locally, make sure you have the following installed o
 * **[VS Code](https://code.visualstudio.com/)** (or any preferred code editor) — Recommended for development.
 * A modern web browser (Google Chrome, Firefox, Edge, or Brave).
 
+
+```sh
+nom install
+npm install express
+npm install dotenv
+npm install pg
+npm install nodemon --save-dev
+
+
+```
 ---
 
 ## 🚀 How to Run the Project Locally
@@ -50,4 +60,26 @@ Follow these steps to set up and run Lily on your local machine:
 Open your terminal (or Git Bash) and run:
 ```bash
 git clone [https://github.com/your-username/lily-financial-tracker.git](https://github.com/your-username/lily-financial-tracker.git)
+
 cd lily-financial-tracker
+
+code. (to open vs code) 
+
+```
+
+### To run
+
+```bash
+
+cd Main
+
+node src/app.js
+
+or if you are using nodemon
+
+npx nodemon src/app.js
+
+```
+### To load
+
+http://localhost:3000
