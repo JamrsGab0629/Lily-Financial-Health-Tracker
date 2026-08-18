@@ -5,11 +5,15 @@ Lily is an intelligent, empathetic personal financial health tracker powered by 
 ---
 
 ## 🎥 Presentation Video
+
+# Shorter video presentation
 *Watch the project presentation and system walkthrough here:*
 Link https://drive.google.com/file/d/1ipBy4NBXRFt7cTFDxGMJI5rWodmdcGDm/view?usp=sharing
 
----
+# Longer or more briefly presentation. 
 
+https://drive.google.com/file/d/1jvTD8TWgbcUKowZSt398KLkaXnM9XGqB/view?usp=drivesdk
+ ---
 ## 🧠 Core Features & Fuzzy Logic Engine
 Lily moves beyond traditional budgeting apps by analyzing four key financial inputs through a fuzzy decision tree:
 1. **Spending Pace Ratio:** Measures how fast expenses accumulate relative to your monthly budget timeline.
